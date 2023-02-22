@@ -34,7 +34,7 @@ A short list of packages we will probably use:
 + Colors
 + Plots
 + JuMP (for mixed integer linear formulations such as in SpineOpt)
-+ GLPK (to use the glpk solver in JuMP; you can also use other solvers. [JuMP compatible solvers](https://jump.dev/JuMP.jl/stable/installation/#Supported-solvers))
++ GLPK (to use the glpk solver in JuMP; you can also use other [JuMP compatible solvers](https://jump.dev/JuMP.jl/stable/installation/#Supported-solvers))
 + SpineOpt
 
 ### python
