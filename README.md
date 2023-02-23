@@ -62,3 +62,10 @@ Feel free to add training materials that you found useful.
 [JuMP](https://jump.dev/JuMP.jl/stable/): The mixed integer linear model formulation package for Julia.
 
 [JuMP compatible solvers](https://jump.dev/JuMP.jl/stable/installation/#Supported-solvers): A list and package names of solvers that can be used in JuMP
+
+## planning
+
+homework:
++ install everything
++ read juliastudygroup.ipynb
++ add basic julia you thought to be nice
