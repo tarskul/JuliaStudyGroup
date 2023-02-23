@@ -35,7 +35,7 @@ A short list of packages we will probably use:
 + Plots
 + JuMP (for mixed integer linear formulations such as in SpineOpt)
 + GLPK (to use the glpk solver in JuMP; you can also use other [JuMP compatible solvers](https://jump.dev/JuMP.jl/stable/installation/#Supported-solvers))
-+ SpineOpt
++ SpineOpt (we'll install the developer version together in one of the meetings)
 
 ### Python
 
@@ -63,9 +63,11 @@ Feel free to add training materials that you found useful.
 
 [JuMP compatible solvers](https://jump.dev/JuMP.jl/stable/installation/#Supported-solvers): A list and package names of solvers that can be used in JuMP
 
-## planning
+[Git explained by Ole](https://ole.mn/estp2022/slides/practical_git/)
 
-homework:
+## Planning
+
+homework for Thursday 2nd of March:
 + install everything
 + read juliastudygroup.ipynb
 + add basic julia you thought to be nice
