@@ -1,4 +1,5 @@
 # Julia Study Group
+[![Join the chat at https://matrix.to/#/#juliastudygroup:gitter.im](https://badges.gitter.im/juliastudygroup.svg)](https://matrix.to/#/#juliastudygroup:gitter.im)
 
 This is a temporary project (during March 2023?) to host the files for the julia study group (in the context of the Mopo project in preparation for WP4). The project is forked from 'From Python To Julia' to get started but will be expanded dynamically as needed by the members of the study group. The Julia Study Group is a playground to experiment with the julia programming language. There will not necessarily be a big end goal or structure.
 
