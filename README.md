@@ -15,12 +15,30 @@ Some of the topics that will be addressed:
 warning: the links in this readme file are here to help you. However, there is always a risk with clicking on links. So, always check a link before you click on it.
 
 ## Join
-To join the study group, first join the gitter room (button on top of this readme file) and ask there. If you are part of the Mopo project, We'll add you as soon as possible. If you are not of the Mopo project, I guess you are still welcome but you will have to provide a small motivation and you'll have to accept that Mopo project members are prioritised (meaning that we might not have the time to wait for you if you lag behind too much). We'll just have to see what works and what not.
+To join the study group, first join the gitter room (button on top of this readme file) and ask there. If you are part of the Mopo project, We'll add you as soon as possible to the Teams meeting and as a developer on github. If you are not of the Mopo project, I guess you are still welcome but you will have to provide a small motivation and you'll have to accept that Mopo project members are prioritised (meaning that we might not have the time to wait for you if you lag behind too much). We'll just have to see what works and what not.
 
-If you would like to join but the timing doesn't suit you, you can indicate a different timing in this form (only for Mopo project members and ignore the actual date): [Teams meeting timing](https://framadate.org/WtmVUI4eQV7zEXCJ)
+The meetings will be held every thursday from 10:00 to 11:00 (GMT) in Teams. If you would like to join but the timing doesn't suit you, you can indicate a different timing in this form (only for Mopo project members and ignore the actual date): [Teams meeting timing](https://framadate.org/WtmVUI4eQV7zEXCJ)
+
+## Approach
+There are two parts to our learning approach. As we start at the very start we will fiddle around with some very basic code. That will be done in the jupyter notebook file and will serve later on as some sort of code library.
+
+Then we will get more serious and we will make a more complex program. We will make a double 'optimisation' loop. The inner loop will be a mixed integer linear formulation. The outer loop will be a monte carlo analysis of the parameters of that formulation. We will also plot the results in some nice figures.
+
+We will do that step by step. The main.jl file will hold the structure (including documentation) and the mod_name.jl file will be a file for each of us where we can try our own version of the algorithm. As we will use the same structure, we will be able to compare our files (in speed and flexibility) and learn from our differences.
 
 ## Prerequisites
 For this study group we will obviously use Julia. When I'm learning to code or when I'm trying something out, I typically find a jupyter notebook quite useful. So we'll try that as well.
+
+### Gitter
+We will communicate through gitter as this is also used in WP4. Once you click on the button you are invited to the room but you actually still need an application to get it running. There will be some guidance but you might need some extra help.
+
+Gitter has moved to [matrix](https://matrix.org/) so you need an application that runs matrix. [Element](https://element.io/) is a very solid option but there are other cute ones like [Fluffy chat](https://fluffychat.im/).
+
+Matrix allows for different server domains. By default it selects Matrix.org but in this case we actually want gitter.im so make sure to change to that.
+
+Finally you can make your account with a github account.
+
+If the room is not automatically added, you can just click the gitter button above again.
 
 ### Julia
 
@@ -51,7 +69,8 @@ You can install Jupyter through pip (from python): `pip install jupyterlab`. (Be
 To open a jupyter notebook you can open jupyterlab with the commandline `jupyter lab` (the python scripts folder needs to be in your environment variable PATHS) or use your own preferred application. My personal favorite:
 [vs code](https://code.visualstudio.com/docs/datascience/jupyter-notebooks).
 
-(in the near future we might use jupyterlab collaboratively: [jupyter collaborative](https://jupyterlab.readthedocs.io/en/stable/user/rtc.html) or other [jupyter collaboration programs](https://datasciencenotebook.org/jupyter-realtime-collaboration))
+We would like to use [jupyter collaboratively](https://jupyterlab.readthedocs.io/en/stable/user/rtc.html) but that requires a server. I've contacted my institution for this but at the moment it does not seem to get much traction. Any other suggestions are welcome.
+Alternatively, there are also other [jupyter collaboration programs](https://datasciencenotebook.org/jupyter-realtime-collaboration).
 
 
 ## Additional training materials
@@ -60,7 +79,7 @@ Feel free to add training materials that you found useful.
 
 [From Python To Julia](https://gitlab.kuleuven.be/UCM/from-python-to-julia): The original project which is dedicated to the differences between Python and Julia and remains a separate project.
 
-[Advanced Julia training](https://gitlab.kuleuven.be/UCM/esim-advanced-julia-training): A project by the ESIM group at the KU Leuven to get students or collegues up to speed with Julia.
+[Advanced Julia training](https://gitlab.kuleuven.be/UCM/esim-advanced-julia-training): A project by the ESIM group at the KU Leuven to get students or collegues up to speed with Julia. The owner of the repository told me that if there were any issues or suggestions, you can contact them through the foreseen issue list. They'll try to respond as soon as possible.
 
 [JuMP](https://jump.dev/JuMP.jl/stable/): The mixed integer linear model formulation package for Julia.
 
@@ -70,7 +89,14 @@ Feel free to add training materials that you found useful.
 
 ## Planning
 
-homework for Thursday 2nd of March:
-+ install everything
+2nd of March 2023
+
+homework:
++ install everything as indicated above
 + read juliastudygroup.ipynb
 + add basic julia you thought to be nice
+
+agenda:
++ if there are newcomers: brief overview of last meeting (by means of this readme)
++ brief discussion on any issues during installation
++ playing around with the jupyter notebook to exchange our understanding of the basics of Julia
