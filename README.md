@@ -15,7 +15,9 @@ Some of the topics that will be addressed:
 warning: the links in this readme file are here to help you. However, there is always a risk with clicking on links. So, always check a link before you click on it.
 
 ## Join
-To join the study group, send a mail to tars.verschelde@kuleuven.be . If you are part of the Mopo project, I'll add you as soon as possible. If you are not of the Mopo project, I guess you are still welcome but you will have to provide a small motivation and you'll have to accept that Mopo project members are prioritised (meaning that we might not have the time to wait for you if you lag behind too much). We'll just have to see what works and what not.
+To join the study group, first join the gitter room (button on top of this readme file) and ask there. If you are part of the Mopo project, We'll add you as soon as possible. If you are not of the Mopo project, I guess you are still welcome but you will have to provide a small motivation and you'll have to accept that Mopo project members are prioritised (meaning that we might not have the time to wait for you if you lag behind too much). We'll just have to see what works and what not.
+
+If you would like to join but the timing doesn't suit you, you can indicate a different timing in this form (only for Mopo project members and ignore the actual date): [Teams meeting timing](https://framadate.org/WtmVUI4eQV7zEXCJ)
 
 ## Prerequisites
 For this study group we will obviously use Julia. When I'm learning to code or when I'm trying something out, I typically find a jupyter notebook quite useful. So we'll try that as well.
