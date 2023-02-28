@@ -87,7 +87,8 @@ Feel free to add training materials that you found useful.
 
 [Git explained by Ole](https://ole.mn/estp2022/slides/practical_git/)
 
-[![Git explained by git-tower](https://www.git-tower.com/learn/media/pages/git/ebook/en/command-line/remote-repositories/introduction/ca91d7d832-1673968486/basic-remote-workflow.png)]([https://matrix.to/#/#juliastudygroup:gitter.im](https://www.git-tower.com/learn/git/ebook/en/command-line/basics/what-is-version-control#start))
+[git-tower](https://www.git-tower.com/learn/git/ebook/en/command-line/basics/what-is-version-control#start) also explains git quite nicely. Below is an overview of the principle.
+![Git explained by git-tower](https://www.git-tower.com/learn/media/pages/git/ebook/en/command-line/remote-repositories/introduction/ca91d7d832-1673968486/basic-remote-workflow.png)
 
 ## Planning
 
