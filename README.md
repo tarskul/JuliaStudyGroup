@@ -17,7 +17,7 @@ warning: the links in this readme file are here to help you. However, there is a
 ## Join
 To join the study group, first join the gitter room (button on top of this readme file) and ask there. If you are part of the Mopo project, We'll add you as soon as possible to the Teams meeting and as a developer on github. If you are not of the Mopo project, I guess you are still welcome but you will have to provide a small motivation and you'll have to accept that Mopo project members are prioritised (meaning that we might not have the time to wait for you if you lag behind too much). We'll just have to see what works and what not.
 
-The meetings will be held every thursday from 10:00 to 11:00 (GMT) in Teams. If you would like to join but the timing doesn't suit you, you can indicate a different timing in this form (only for Mopo project members and ignore the actual date): [Teams meeting timing](https://framadate.org/WtmVUI4eQV7zEXCJ)
+The meetings are scheduled to be held every thursday from 10:00 to 11:00 (GMT) in Teams. However, there has been a request to change the time slot to friday. If you want to have a say in this, fill in this form (probably valid as long as this text remains here, only for Mopo project members, ignore the actual date): [Teams meeting timing](https://framadate.org/WtmVUI4eQV7zEXCJ)
 
 ## Approach
 There are two parts to our learning approach. As we start at the very start we will fiddle around with some very basic code. That will be done in the jupyter notebook file and will serve later on as some sort of code library.
@@ -86,6 +86,8 @@ Feel free to add training materials that you found useful.
 [JuMP compatible solvers](https://jump.dev/JuMP.jl/stable/installation/#Supported-solvers): A list and package names of solvers that can be used in JuMP
 
 [Git explained by Ole](https://ole.mn/estp2022/slides/practical_git/)
+
+[![Git explained by git-tower](https://www.git-tower.com/learn/media/pages/git/ebook/en/command-line/remote-repositories/introduction/ca91d7d832-1673968486/basic-remote-workflow.png)]([https://matrix.to/#/#juliastudygroup:gitter.im](https://www.git-tower.com/learn/git/ebook/en/command-line/basics/what-is-version-control#start))
 
 ## Planning
 
