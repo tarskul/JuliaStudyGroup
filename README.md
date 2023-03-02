@@ -91,8 +91,11 @@ Feel free to add training materials that you found useful.
 ![Git explained by git-tower](https://www.git-tower.com/learn/media/pages/git/ebook/en/command-line/remote-repositories/introduction/ca91d7d832-1673968486/basic-remote-workflow.png)
 
 ## Planning
+The meetings will mostly be used to share our experiences. The agenda is a guideline. Additional topics are certainly welcome. Further discussions are also possible in the gitter rooms.
 
-3rd of March 2023
+day/month/2023
+
+03/03
 
 homework:
 + install everything as indicated above
@@ -103,3 +106,57 @@ agenda:
 + if there are newcomers: brief overview of last meeting (by means of this readme)
 + brief discussion on any issues during installation
 + playing around with the jupyter notebook to exchange our understanding of the basics of Julia
+
+
+10/03
+
+homework:
++ someone should check the code for working with a main file and modules
++ write input and output files without and with DataFrames
+
+agenda:
++ discuss io-file
++ discuss DataFrames
+
+
+17/03
+
+homework:
++ someone should create some code for benchmarking
++ create a linear model with JuMP, you can make it as complex as you like
+
+agenda:
++ explanation of the benchmarking
++ discussion and comparison of linear models with JuMP
+
+
+24/03
+
+homework:
++ create a sampling method for the parameters in the linear model, at least monte carlo but you can do something more interesting as well
+
+agenda:
++ discuss and compare sampling methods
++ link random sampling and linear model with parameteranalysis
+
+
+31/03
+
+homework:
++ visualise the results
+
+agenda:
++ discussion and comparison of the visualisation techniques
++ preparation of the next session: install the developer version of spineopt
+
+
+07/04
+
+homework:
++ write a SpineOpt model within the spinewrapper (it is supposed to replace the JuMP model but does not need to be exactly the same)
+
+agenda:
++ similar discussion and comparison for the SpineOpt model as there was for the JuMP model
+
+
+11/04-12/04 SpineOpt deepdive event
