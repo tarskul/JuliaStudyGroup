@@ -92,7 +92,7 @@ Feel free to add training materials that you found useful.
 
 ## Planning
 
-3nd of March 2023
+3rd of March 2023
 
 homework:
 + install everything as indicated above
