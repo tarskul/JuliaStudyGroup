@@ -48,7 +48,7 @@ You can check whether it is installed correctly by going to your terminal and ty
 
 You will need some additional Julia packages: [https://docs.julialang.org/en/v1/stdlib/Pkg/](https://docs.julialang.org/en/v1/stdlib/Pkg/)
 
-In short, in the terminal type: `julia` to open the julia environment and type `]` to get into the package manager (the text will typically become blue). To add a package type `add` with the package name, e.g. `add "IJulia"`. (Afterwards, you can then exit the package manager with backspace and exit Julia by typing: exit())
+In short, in the terminal type: `julia` to open the julia environment and type `]` to get into the package manager (the text will typically become blue). To add a package type `add` with the package name, e.g. `add IJulia`. (Afterwards, you can then exit the package manager with backspace and exit Julia by typing: exit())
 
 A short list of packages we will probably use:
 + IJulia (to make julia available as a kernel in the jupyter notebook)
