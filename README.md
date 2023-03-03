@@ -15,9 +15,7 @@ Some of the topics that will be addressed:
 warning: the links in this readme file are here to help you. However, there is always a risk with clicking on links. So, always check a link before you click on it.
 
 ## Join
-To join the study group, first join the gitter room (button on top of this readme file) and ask there. If you are part of the Mopo project, We'll add you as soon as possible to the Teams meeting and as a developer on github. If you are not of the Mopo project, I guess you are still welcome but you will have to provide a small motivation and you'll have to accept that Mopo project members are prioritised (meaning that we might not have the time to wait for you if you lag behind too much). We'll just have to see what works and what not.
-
-The meetings are scheduled to be held every thursday from 10:00 to 11:00 (GMT) in Teams. However, there has been a request to change the time slot to friday. If you want to have a say in this, fill in this form (probably valid as long as this text remains here, only for Mopo project members, ignore the actual date): [Teams meeting timing](https://framadate.org/WtmVUI4eQV7zEXCJ)
+To join the study group, first join the gitter room (button on top of this readme file) and ask there. If you are part of the Mopo project, We'll add you as soon as possible to the Teams meeting and as a developer on github. If you are not of the Mopo project, I guess you are still welcome but you will have to provide a small motivation and you'll have to accept that Mopo project members are prioritised (especially during the online meetings). We'll just have to see what works and what not.
 
 ## Approach
 There are two parts to our learning approach. As we start at the very start we will fiddle around with some very basic code. That will be done in the jupyter notebook file and will serve later on as some sort of code library.
@@ -39,6 +37,8 @@ Matrix allows for different server domains. By default it selects Matrix.org but
 Finally you can make your account with a github account.
 
 If the room is not automatically added, you can just click the gitter button above again.
+
+Note that Matrix is a more secure application and from time to time will ask for verification. Suppose that you change your application from element to fluffychat. It is recommended that you first install and setup fluffychat before you remove element as you might require the old application to verify the new application. Perhaps it is not a problem for public rooms but it might be for your personal chats.
 
 ### Julia
 
@@ -91,7 +91,7 @@ Feel free to add training materials that you found useful.
 ![Git explained by git-tower](https://www.git-tower.com/learn/media/pages/git/ebook/en/command-line/remote-repositories/introduction/ca91d7d832-1673968486/basic-remote-workflow.png)
 
 ## Planning
-The meetings will mostly be used to share our experiences. The agenda is a guideline. Additional topics are certainly welcome. Further discussions are also possible in the gitter rooms.
+The meetings are scheduled to be held every friday from 10:00 to 11:00 (GMT) in Teams. The meetings will mostly be used to share our experiences. The agenda is a guideline. Additional topics are certainly welcome. Further discussions are also possible in the gitter rooms.
 
 day/month/2023
 
@@ -100,7 +100,7 @@ day/month/2023
 homework:
 + install everything as indicated above
 + read juliastudygroup.ipynb
-+ add basic julia you thought to be nice
++ add basic julia stuff that you encountered and that you found interesting or useful
 
 agenda:
 + if there are newcomers: brief overview of last meeting (by means of this readme)
@@ -112,7 +112,8 @@ agenda:
 
 homework:
 + someone should check the code for working with a main file and modules
-+ write input and output files without and with DataFrames
++ add your own mod_name to the repository
++ write input and output files (json, excel, csv, ...) without and with DataFrames
 
 agenda:
 + discuss io-file
