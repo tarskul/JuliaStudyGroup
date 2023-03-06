@@ -71,7 +71,7 @@ function parameteranalysis(;finish=0.0,i=0,itarget=10,t=0.0,ttarget=NaN,a=0.0,at
     )
     finish=maximum(finishratios)
     end
-    modelresults=linearagent()
+    modelresults=linearmodel()
     return Dict("i"=>i,"modelresults"=>modelresults)
 end
 
@@ -117,7 +117,7 @@ end#module end
 if abspath(PROGRAM_FILE) == @__FILE__
     # this is a pythonic way of doing things
     # in Julia they typically make a separate example or test file
-    using .DSTmini #using because this code block is outside of the module and . for a local module
+    using .mod_Tars #using because this code block is outside of the module and . for a local module
     iodb=loadfile()#iofile="")
     padb=parameteranalysis(;i=iodb["parameteranalysis"]["i"])
     iodb["parameteranalysis"]["i"]=pop!(padb,"i")
