@@ -3,13 +3,17 @@
 
 Main module for a more complex exercise: a monte carlo analysis on the parameters of a linear model (including visualisation through plots)
 """
-module mainmod # for the module to be recognised it needs to be part of a package that is added in Julia
+# module mod_Lauren # for the module to be recognised it needs to be part of a package that is added in Julia
 
 using JSON
 using JuMP
 using Ipopt,Cbc,HiGHS,GLPK
 
 export loadfile,savefile,parameteranalysis,randomselection,linearmodel
+
+a = "Did I break it?"
+b = "... How about now?"
+print(a*b)
 
 """
     loadfile(;iofile="./iofile.json")
@@ -26,6 +30,7 @@ Dict("parameteranalysis" => Dict("i" => 0))
 ```
 """
 function loadfile(;iofile="./iofile.json")
+
 end
 
 """
@@ -60,7 +65,7 @@ end
 function spinewrapper()
 end
 
-end#module end
+#end#module end
 
 if abspath(PROGRAM_FILE) == @__FILE__
     # this is a pythonic way of doing things
