@@ -7,7 +7,7 @@ module mainmod # for the module to be recognised it needs to be part of a packag
 
 using JSON
 using JuMP
-using Ipopt,Cbc,HiGHS,GLPK
+using Ipopt,Cbc,HiGHS,GLPK, Gurobi
 
 export loadfile,savefile,parameteranalysis,randomselection,linearmodel
 
