@@ -27,7 +27,7 @@ Dict("parameteranalysis" => Dict("i" => 0))
 """
 function loadfile(;iofile="./iofile_Diego.json")
     if isfile(iofile)
-        iodb=Dict()
+        iodb=Dict{String, Integer}
         open(iofile, "r") do f
             dicttxt = read(f,String)  # file information to string
             iodb=JSON.parse(dicttxt)  # parse and transform data
