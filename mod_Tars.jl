@@ -6,6 +6,8 @@ Tars's implementation of the functions in the main module.
 module mod_Tars # for the module to be recognised it needs to be part of a package that is added in Julia
 
 using JSON
+using CSV
+using DataFrames
 using JuMP
 using Ipopt,Cbc,HiGHS,GLPK
 
@@ -44,15 +46,24 @@ function loadfile(;iofile="./iofile_Tars.json")
 end
 
 """
-    savefile(iodb::Dict;iofile="./iofile.json")
+    savefile(iodb::Dict;iofile="./iofile_Tars.json")
 
-Saves a dictionary to a json file 'iofile'.
+Saves a dictionary to a json file.
 """
 function savefile(iodb::Dict;iofile="./iofile_Tars.json")
     stringdata = JSON.json(iodb,4) # pass data as a json string with indent 4
     open(iofile, "w") do f # write the file with the stringdata variable information
         write(f, stringdata)
     end 
+end
+
+"""
+    savefile(iodb::DataFrame;iofile="./iofile_Tars.csv")
+
+Saves a DataFrame to a csv file.
+"""
+function savefile(iodb::DataFrame;iofile="./iofile_Tars.csv")
+    CSV.write(iofile,iodb)
 end
 
 """
@@ -118,9 +129,11 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # this is a pythonic way of doing things
     # in Julia they typically make a separate example or test file
     using .mod_Tars #using because this code block is outside of the module and . for a local module
+    using DataFrames
     iodb=loadfile()#iofile="")
     padb=parameteranalysis(;i=iodb["parameteranalysis"]["i"])
     iodb["parameteranalysis"]["i"]=pop!(padb,"i")
+    savefile(DataFrame(padb["modelresults"]))
     merge!(iodb,padb)
     savefile(iodb)
 end
