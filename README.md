@@ -84,6 +84,8 @@ Feel free to add training materials that you found useful.
 
 [JuMP compatible solvers](https://jump.dev/JuMP.jl/stable/installation/#Supported-solvers): A list and package names of solvers that can be used in JuMP
 
+[DataFrames](https://dataframes.juliadata.org/stable/): To get started with dataframes I started from a [tutorial on dataframes in jupyter notebooks](https://github.com/bkamins/Julia-DataFrames-Tutorial/). It goes pretty deep but I only played around in the first two to get the basics, then I used the search function in the official documentation when I still needed something else.
+
 [Git explained by Ole](https://ole.mn/estp2022/slides/practical_git/)
 
 [git-tower](https://www.git-tower.com/learn/git/ebook/en/command-line/basics/what-is-version-control#start) also explains git quite nicely. Below is an overview of the principle.
