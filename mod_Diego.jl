@@ -3,9 +3,9 @@
 
 Main module for a more complex exercise: a monte carlo analysis on the parameters of a linear model (including visualisation through plots)
 """
-module mainmod # for the module to be recognised it needs to be part of a package that is added in Julia
+module mainmod_diego # for the module to be recognised it needs to be part of a package that is added in Julia
 
-using JSON
+using JSON, TOML
 using JuMP
 using Ipopt,Cbc,HiGHS,GLPK
 
@@ -25,13 +25,13 @@ The file does not exist, falling back to default dictionary.
 Dict("parameteranalysis" => Dict("i" => 0))
 ```
 """
-function loadfile(;iofile="./iofile_Diego.json")
+function loadfile(;iofile="./iofile_Diego.toml")
     if isfile(iofile)
         iodb=Dict{String, Integer}
-        open(iofile, "r") do f
-            dicttxt = read(f,String)  # file information to string
-            iodb=JSON.parse(dicttxt)  # parse and transform data
-        end
+        #open(iofile, "r") do f
+            #dicttxt = read(f,String)  # file information to string
+            iodb=TOML.parsefile(iofile)  # parse and transform data
+        #end
     else
         println("The file does not exist, falling back to default dictionary.")
         iodb=Dict(
@@ -48,13 +48,14 @@ end
 
 Saves a dictionary to a json file 'iofile'.
 """
-function savefile(iodb::Dict;iofile="./iofile_Diego.json")
+function savefile(iodb::Dict;iofile="./iofile_Diego.toml")
     stringdata = JSON.json(iodb,4) # pass data as a json string with indent 4
+    iodb["modelresults"]=Dict(k => string(v) for (k,v) in pairs(iodb["modelresults"]))
     open(iofile, "w") do f # write the file with the stringdata variable information
-        write(f, stringdata)
+        TOML.print(f, iodb) #write(f, stringdata)
     end
 end
-
+#Dict(k => string(v) for (k,v) in pairs(iodb["modelresults"]))
 """
     parameteranalysis()
 
