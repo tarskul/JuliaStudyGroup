@@ -1,5 +1,6 @@
 # Julia Study Group
 [![Join the chat at https://matrix.to/#/#juliastudygroup:gitter.im](https://badges.gitter.im/juliastudygroup.svg)](https://matrix.to/#/#juliastudygroup:gitter.im)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/OleMussmann/Julia-RTC/HEAD)
 
 This is a temporary project (during March 2023?) to host the files for the julia study group (in the context of the Mopo project in preparation for WP4). The project is forked from 'From Python To Julia' to get started but will be expanded dynamically as needed by the members of the study group. The Julia Study Group is a playground to experiment with the julia programming language. There will not necessarily be a big end goal or structure.
 
@@ -23,6 +24,8 @@ There are two parts to our learning approach. As we start at the very start we w
 Then we will get more serious and we will make a more complex program. We will make a double 'optimisation' loop. The inner loop will be a mixed integer linear formulation. The outer loop will be a monte carlo analysis of the parameters of that formulation. We will also plot the results in some nice figures.
 
 We will do that step by step. The main.jl file will hold the structure (including documentation) and the mod_name.jl file will be a file for each of us where we can try our own version of the algorithm. As we will use the same structure, we will be able to compare our files (in speed and flexibility) and learn from our differences.
+
+During the meetings we can work [collaboratively](https://jupyterlab.readthedocs.io/en/stable/user/rtc.html) on jupyter lab. Typically that means that we need a server or use a [jupyter collaboration programs](https://datasciencenotebook.org/jupyter-realtime-collaboration). We have settled on [Binder](https://mybinder.org). The process is the following: The meeting organiser (probably Tars) needs to click the binder button above. You don't have to do that; that would create another instance and you still would not be able to work together. Instead, the organiser will send you the share link during the meeting such that everyone joins the same instance of the jupyter notebook.
 
 ## Prerequisites
 For this study group we will obviously use Julia. When I'm learning to code or when I'm trying something out, I typically find a jupyter notebook quite useful. So we'll try that as well.
@@ -69,10 +72,6 @@ You can install Jupyter through pip (from python): `pip install jupyterlab`. (Be
 To open a jupyter notebook you can open jupyterlab with the commandline `jupyter lab` (the python scripts folder needs to be in your environment variable PATHS) or use your own preferred application. My personal favorite:
 [vs code](https://code.visualstudio.com/docs/datascience/jupyter-notebooks).
 
-We would like to use [jupyter collaboratively](https://jupyterlab.readthedocs.io/en/stable/user/rtc.html) but that requires a server. I've contacted my institution for this but at the moment it does not seem to get much traction. Any other suggestions are welcome.
-Alternatively, there are also other [jupyter collaboration programs](https://datasciencenotebook.org/jupyter-realtime-collaboration).
-
-
 ## Additional training materials
 
 Feel free to add training materials that you found useful.
@@ -84,6 +83,8 @@ Feel free to add training materials that you found useful.
 [JuMP](https://jump.dev/JuMP.jl/stable/): The mixed integer linear model formulation package for Julia.
 
 [JuMP compatible solvers](https://jump.dev/JuMP.jl/stable/installation/#Supported-solvers): A list and package names of solvers that can be used in JuMP
+
+[DataFrames](https://dataframes.juliadata.org/stable/): To get started with dataframes I started from a [tutorial on dataframes in jupyter notebooks](https://github.com/bkamins/Julia-DataFrames-Tutorial/). It goes pretty deep but I only played around in the first two to get the basics, then I used the search function in the official documentation when I still needed something else.
 
 [Git explained by Ole](https://ole.mn/estp2022/slides/practical_git/)
 
