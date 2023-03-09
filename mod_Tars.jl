@@ -14,7 +14,7 @@ using Ipopt,Cbc,HiGHS,GLPK
 export loadfile,savefile,parameteranalysis,randomselection,linearmodel
 
 """
-    loadfile(;iofile="./iofile.json")
+    loadfile(;iofile="./Data_Tars/iofile.json")
 
 Loads a json file 'iofile' and returns a dictionary.
 
@@ -27,7 +27,7 @@ The file does not exist, falling back to default dictionary.
 Dict("parameteranalysis" => Dict("i" => 0))
 ```
 """
-function loadfile(;iofile="./iofile_Tars.json")
+function loadfile(;iofile="./Data_Tars/iofile_Tars.json")
     if isfile(iofile)
         iodb=Dict()
         open(iofile, "r") do f
@@ -46,11 +46,11 @@ function loadfile(;iofile="./iofile_Tars.json")
 end
 
 """
-    savefile(iodb::Dict;iofile="./iofile_Tars.json")
+    savefile(iodb::Dict;iofile="./Data_Tars/iofile_Tars.json")
 
 Saves a dictionary to a json file.
 """
-function savefile(iodb::Dict;iofile="./iofile_Tars.json")
+function savefile(iodb::Dict;iofile="./Data_Tars/iofile_Tars.json")
     stringdata = JSON.json(iodb,4) # pass data as a json string with indent 4
     open(iofile, "w") do f # write the file with the stringdata variable information
         write(f, stringdata)
@@ -58,11 +58,11 @@ function savefile(iodb::Dict;iofile="./iofile_Tars.json")
 end
 
 """
-    savefile(iodb::DataFrame;iofile="./iofile_Tars.csv")
+    savefile(iodb::DataFrame;iofile="./Data_Tars/iofile_Tars.csv")
 
 Saves a DataFrame to a csv file.
 """
-function savefile(iodb::DataFrame;iofile="./iofile_Tars.csv")
+function savefile(iodb::DataFrame;iofile="./Data_Tars/iofile_Tars.csv")
     CSV.write(iofile,iodb)
 end
 
@@ -90,7 +90,7 @@ function randomselection()
 end
 
 """
-    linearmodel(;iofile="./iofile.json")
+    linearmodel()
 
 Linear model using JuMP with the Ipopt solver.
 """
