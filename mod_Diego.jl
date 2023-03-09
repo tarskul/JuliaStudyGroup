@@ -49,13 +49,11 @@ end
 Saves a dictionary to a json file 'iofile'.
 """
 function savefile(iodb::Dict;iofile="./iofile_Diego.toml")
-    stringdata = JSON.json(iodb,4) # pass data as a json string with indent 4
-    iodb["modelresults"]=Dict(k => string(v) for (k,v) in pairs(iodb["modelresults"]))
-    open(iofile, "w") do f # write the file with the stringdata variable information
-        TOML.print(f, iodb) #write(f, stringdata)
+    iodb["modelresults"]=Dict(k => string(v) for (k,v) in pairs(iodb["modelresults"])) # to write in TOML files, all values must be the same type, so you need to put them all as string
+    open(iofile, "w") do f # write the file in TOML
+        TOML.print(f, iodb) 
     end
 end
-#Dict(k => string(v) for (k,v) in pairs(iodb["modelresults"]))
 """
     parameteranalysis()
 
