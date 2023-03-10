@@ -3,7 +3,7 @@
 
 Main module for a more complex exercise: a monte carlo analysis on the parameters of a linear model (including visualisation through plots)
 """
-module mainmod # for the module to be recognised it needs to be part of a package that is added in Julia
+module test_opt # for the module to be recognised it needs to be part of a package that is added in Julia
 
 using JSON
 using JuMP
@@ -26,14 +26,23 @@ Dict("parameteranalysis" => Dict("i" => 0))
 ```
 """
 function loadfile(;iofile="./iofile.json")
+  dicts_from_json_file = Dict()
+  open(iofile, "r") do f
+	  dicts_from_json_file = JSON.parse(f)
+  end
+  return dicts_from_json_file
 end
 
 """
     savefile(iodb::Dict;iofile="./iofile.json")
 
-Saves a dictionary to a json file 'iofile'.
+Saves a dictionary to a json file 'output_file'.
 """
-function savefile(iodb::Dict;iofile="./iofile.json")
+function savefile(iodb::Dict;iofile="./output_file.json")
+  open(iofile, "w") do f
+      JSON.print(f, iodb)
+  end
+  return nothing
 end
 
 """
