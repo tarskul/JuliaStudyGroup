@@ -9,7 +9,7 @@ using JSON
 using JuMP
 using Ipopt,Cbc,HiGHS,GLPK
 
-export loadfile,savefile,parameteranalysis,randomselection,linearmodel
+export main,loadfile,savefile,parameteranalysis,randomselection,linearmodel
 
 """
     loadfile(;iofile="./iofile.json")
@@ -60,15 +60,25 @@ end
 function spinewrapper()
 end
 
+function main()
+    loadfile()
+    parameteranalysis()
+    savefile(Dict())
+    println("The main file works")
+end
+
 end#module end
 
 if abspath(PROGRAM_FILE) == @__FILE__
-    # this is a pythonic way of doing things
-    # in Julia they typically make a separate example or test file, so perhaps we'll put this code in the jupyter file instead, then we can also remove the auxiliary file and add that code here instead
-    using .DSTmini #using because this code block is outside of the module and . for a local module
-    iodb=loadfile()#iofile="")
-    padb=parameteranalysis(;i=iodb["parameteranalysis"]["i"])
-    iodb["parameteranalysis"]["i"]=pop!(padb,"i")
-    merge!(iodb,padb)
-    savefile(iodb)
+    #=
+    This protects the module from executing this script when it is called by a different module or during an interactive session in the REPL.
+
+    To use the file in the REPL you should use the following code:
+    include("./mainmod.jl")
+    mainmod.main()
+
+    This is a more pythonic way of doing things. In Julia they typically make a separate example or test file (without the if abspath...). That would also make it easier to use in the REPL...
+    =#
+    using .mainmod #using because this code block is outside of the module and . for a local module
+    main()
 end
