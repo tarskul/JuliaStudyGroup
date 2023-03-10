@@ -29,6 +29,31 @@ Dict("parameteranalysis" => Dict("i" => 0))
 ```
 """
 function loadfile(;iofile="./Data_Tars/iofile_Tars.json")
+    funcmap=Dict(#map for fileextensions
+        "json" => filename -> JSON.parsefile(filename),
+        "xlsx" => filename -> xlhandler(filename),
+        "csv" => filename -> CSV.File(filename)
+    )
+
+    function xlhandler(filename;firstsheet="Tabelle1")
+        # just to have an example of a local function in funcmap
+        return XLSX.readtable(filename,firstsheet)
+    end
+
+    file_extension=split(iofile,".")[end]
+    if isfile(iofile) && file_extension in keys(funcmap)
+        iodf=DataFrame(funcmap[file_extension](iofile))
+        iodb=Dict(pairs(eachcol(iodf)))
+    else
+        println("The file does not exist, falling back to default dictionary.")
+        iodb=Dict(
+            "parameteranalysis" => Dict("i"=>0),
+            "modelresults" => Dict()
+            )
+    end
+    return iodb
+end
+function loadfile_legacy(;iofile="./Data_Tars/iofile_Tars.json")
     if isfile(iofile)
         iodb=Dict()
         fileextension=split(iofile, ".")[end]
