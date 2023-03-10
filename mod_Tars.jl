@@ -7,6 +7,7 @@ module mod_Tars # for the module to be recognised it needs to be part of a packa
 
 using JSON
 using CSV
+using XLSX
 using DataFrames
 using JuMP
 using Ipopt,Cbc,HiGHS,GLPK
@@ -30,9 +31,15 @@ Dict("parameteranalysis" => Dict("i" => 0))
 function loadfile(;iofile="./Data_Tars/iofile_Tars.json")
     if isfile(iofile)
         iodb=Dict()
-        open(iofile, "r") do f
-            dicttxt = read(f,String)  # file information to string
-            iodb=JSON.parse(dicttxt)  # parse and transform data
+        fileextension=split(iofile, ".")[end]
+        if fileextension=="json"
+            open(iofile, "r") do f
+                dicttxt = read(f,String)  # file information to string
+                iodb=JSON.parse(dicttxt)  # parse and transform data
+            end
+        elseif fileextension=="xlsx"
+            dfxl=DataFrame(XLSX.readtable(iofile,"Tabelle1"))
+            iodb=Dict(pairs(eachcol(dfxl)))
         end
     else
         println("The file does not exist, falling back to default dictionary.")
