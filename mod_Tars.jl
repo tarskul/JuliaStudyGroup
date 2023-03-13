@@ -7,6 +7,7 @@ module mod_Tars # for the module to be recognised it needs to be part of a packa
 
 using JSON
 using CSV
+using XLSX
 using DataFrames
 using JuMP
 using Ipopt,Cbc,HiGHS,GLPK
@@ -14,7 +15,7 @@ using Ipopt,Cbc,HiGHS,GLPK
 export loadfile,savefile,parameteranalysis,randomselection,linearmodel
 
 """
-    loadfile(;iofile="./iofile.json")
+    loadfile(;iofile="./Data_Tars/iofile.json")
 
 Loads a json file 'iofile' and returns a dictionary.
 
@@ -27,12 +28,43 @@ The file does not exist, falling back to default dictionary.
 Dict("parameteranalysis" => Dict("i" => 0))
 ```
 """
-function loadfile(;iofile="./iofile_Tars.json")
+function loadfile(;iofile="./Data_Tars/iofile_Tars.json")
+    funcmap=Dict(#map for fileextensions
+        "json" => filename -> JSON.parsefile(filename),
+        "xlsx" => filename -> xlhandler(filename),
+        "csv" => filename -> CSV.File(filename)
+    )
+
+    function xlhandler(filename;firstsheet="Tabelle1")
+        # just to have an example of a local function in funcmap
+        return XLSX.readtable(filename,firstsheet)
+    end
+
+    file_extension=split(iofile,".")[end]
+    if isfile(iofile) && file_extension in keys(funcmap)
+        iodf=DataFrame(funcmap[file_extension](iofile))
+        iodb=Dict(pairs(eachcol(iodf)))
+    else
+        println("The file does not exist, falling back to default dictionary.")
+        iodb=Dict(
+            "parameteranalysis" => Dict("i"=>0),
+            "modelresults" => Dict()
+            )
+    end
+    return iodb
+end
+function loadfile_legacy(;iofile="./Data_Tars/iofile_Tars.json")
     if isfile(iofile)
         iodb=Dict()
-        open(iofile, "r") do f
-            dicttxt = read(f,String)  # file information to string
-            iodb=JSON.parse(dicttxt)  # parse and transform data
+        fileextension=split(iofile, ".")[end]
+        if fileextension=="json"
+            open(iofile, "r") do f
+                dicttxt = read(f,String)  # file information to string
+                iodb=JSON.parse(dicttxt)  # parse and transform data
+            end
+        elseif fileextension=="xlsx"
+            dfxl=DataFrame(XLSX.readtable(iofile,"Tabelle1"))
+            iodb=Dict(pairs(eachcol(dfxl)))
         end
     else
         println("The file does not exist, falling back to default dictionary.")
@@ -46,11 +78,11 @@ function loadfile(;iofile="./iofile_Tars.json")
 end
 
 """
-    savefile(iodb::Dict;iofile="./iofile_Tars.json")
+    savefile(iodb::Dict;iofile="./Data_Tars/iofile_Tars.json")
 
 Saves a dictionary to a json file.
 """
-function savefile(iodb::Dict;iofile="./iofile_Tars.json")
+function savefile(iodb::Dict;iofile="./Data_Tars/iofile_Tars.json")
     stringdata = JSON.json(iodb,4) # pass data as a json string with indent 4
     open(iofile, "w") do f # write the file with the stringdata variable information
         write(f, stringdata)
@@ -58,11 +90,11 @@ function savefile(iodb::Dict;iofile="./iofile_Tars.json")
 end
 
 """
-    savefile(iodb::DataFrame;iofile="./iofile_Tars.csv")
+    savefile(iodb::DataFrame;iofile="./Data_Tars/iofile_Tars.csv")
 
 Saves a DataFrame to a csv file.
 """
-function savefile(iodb::DataFrame;iofile="./iofile_Tars.csv")
+function savefile(iodb::DataFrame;iofile="./Data_Tars/iofile_Tars.csv")
     CSV.write(iofile,iodb)
 end
 
@@ -90,7 +122,7 @@ function randomselection()
 end
 
 """
-    linearmodel(;iofile="./iofile.json")
+    linearmodel()
 
 Linear model using JuMP with the Ipopt solver.
 """

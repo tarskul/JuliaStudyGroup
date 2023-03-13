@@ -126,6 +126,7 @@ agenda:
 homework:
 + someone should create some code for benchmarking
 + create a linear model with JuMP, you can make it as complex as you like
++ bonus: use the loading and saving of files to store your parameters and results
 
 agenda:
 + explanation of the benchmarking
@@ -136,6 +137,7 @@ agenda:
 
 homework:
 + create a sampling method for the parameters in the linear model, at least monte carlo but you can do something more interesting as well
++ bonus: use parallel computing for the different samples
 
 agenda:
 + discuss and compare sampling methods
