@@ -6,7 +6,7 @@ Generation expansion planning problem in Julia considering network constraints
 
 + **functions.jl**: Auxiliry file with the functions to process the input data
 
-+ **Inputs.toml**: Configuration file with the input data files location and names
++ **Parameters.toml**: Configuration file with the input data files location and names, and output file folder
 
 + **inputs**: Folder with the input data in CSV files for one representative period
 
