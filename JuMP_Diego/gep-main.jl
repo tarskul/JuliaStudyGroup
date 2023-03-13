@@ -15,17 +15,17 @@ using CSV
 using DataFrames
 using TOML
 
-# input file names and allocation from Inputs.toml
-inputs = "Inputs.toml" |> TOML.parsefile
+# input file names and allocation from Parameters.toml
+parameters_file = "Parameters.toml" |> TOML.parsefile
 
 # read data
 scalars = "scalars.toml" |> append_input_dir |> TOML.parsefile
 
 # read data
-df_dem     = (inputs["input_file_dem"    ] |> read_csv |> DataFrame)
-df_gen     = (inputs["input_file_gen"    ] |> read_csv |> DataFrame)
-df_lin     = (inputs["input_file_lines"  ] |> read_csv |> DataFrame)
-df_gen_ava = (inputs["input_file_gen_ava"] |> read_csv |> DataFrame)
+df_dem     = (parameters_file["input_file_dem"    ] |> read_csv |> DataFrame)
+df_gen     = (parameters_file["input_file_gen"    ] |> read_csv |> DataFrame)
+df_lin     = (parameters_file["input_file_lines"  ] |> read_csv |> DataFrame)
+df_gen_ava = (parameters_file["input_file_gen_ava"] |> read_csv |> DataFrame)
 
 ## Step 2: create model & pass data to model
 using JuMP
@@ -37,7 +37,7 @@ set_attribute(m,"parallel","on")
 set_attribute(m,"threads",2)
 
 # call functions to define the input data in the model
-define_sets!(m,inputs,scalars)
+define_sets!(m,parameters_file,scalars)
 process_time_series_data!(m,df_dem,df_gen_ava)
 process_parameters!(m,scalars,df_gen,df_lin)
 
@@ -172,24 +172,41 @@ vLossLoad = value.(m.ext[:variables][:vLossLoad])
 λ         = dual.(m.ext[:constraints][:eNodeBal])
 
 # create arrays for plotting
-λvec   = [1e3*λ[n,t]/pWeight         for n in N, t in T]
-gvec   = [vGenProd[g,t]/1e3          for g in G, t in T]
 dvec   = [pDemand[n,t]               for n in N, t in T]
 capvec = [pUnitCap[g]*vGenInv[g]/1e3 for g in G        ]
 
+# create dataframes for plotting
+df_price = convert_jump_container_to_df(λ        ,dim_names=[:Node,:Time]      ,value_col=:Price     )
+df_prod  = convert_jump_container_to_df(vGenProd ,dim_names=[:Generation,:Time],value_col=:Production)
+df_ens   = convert_jump_container_to_df(vLossLoad,dim_names=[:Node,:Time]      ,value_col=:ENS       )
+df_inv   = convert_jump_container_to_df(vGenInv  ,dim_names=[:Generation]      ,value_col=:Investment)
+
+# export dataframes to CSV
+dfs_to_export = Dict("price"      => df_price,
+                     "production" => df_prod,
+                     "ens"        => df_ens,
+                     "investment" => df_inv
+                    )
+for (name,df_) in dfs_to_export
+    CSV.write(joinpath(".",
+                       parameters_file["outputs_dir"],
+                       "oGEP_"*name*".csv"
+                      ),
+              df_)
+end
+
 # average electricity price price
-p1a = convert_jump_container_to_df(λ)  |> plot_avg_price_per_node;
-p1b = convert_jump_container_to_df(λ)  |> plot_avg_price_per_hour;
+p1a = df_price |> plot_avg_price_per_node;
+p1b = df_price |> plot_avg_price_per_hour;
 
 # dispatch
-df_prod = convert_jump_container_to_df(vGenProd)
-df_ens  = convert_jump_container_to_df(vLossLoad)
-
 p2 = plot_tot_gen_per_hour(df_prod,df_ens,dvec);
 
 # capacity
-p3 = convert_jump_container_to_df(vGenInv) |> plot_tot_inv_per_gen;
+p3 = plot_tot_inv_per_gen(df_inv,pUnitCap);
 
-# Combine    
-plot(p1a, p1b, p2, p3, layout = (2, 2))
-plot!(size=(800,800))
+# combine
+p = plot(p1a, p1b, p2, p3, layout = (2, 2))
+p = plot!(size=(800,800))
+savefig(p,joinpath(".",parameters_file["outputs_dir"],"oGEP_"*"summary_plot"*".png"))
+display(p)

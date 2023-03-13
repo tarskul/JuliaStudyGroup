@@ -1,20 +1,20 @@
 using JuMP, HiGHS, DataFrames, Chain
 function append_input_dir(file_name)
-    return joinpath(".",inputs["inputs_dir"], file_name)
+    return joinpath(".",parameters_file["inputs_dir"], file_name)
 end
 
 function read_csv(file_name)
     return file_name |> append_input_dir |> CSV.File
 end
 
-function define_sets!(m::Model, inputs::Dict,scalars::Dict)
+function define_sets!(m::Model, parameters_file::Dict,scalars::Dict)
     # create dictionary to store sets
     m.ext[:sets] = Dict()
 
     m.ext[:sets][:T] = 1:scalars["time_steps"]
-    m.ext[:sets][:G] = (inputs["input_file_set_g"] |> read_csv |> DataFrame).generators
-    m.ext[:sets][:L] = (inputs["input_file_set_l"] |> read_csv |> DataFrame).lines
-    m.ext[:sets][:N] = (inputs["input_file_set_n"] |> read_csv |> DataFrame).nodes
+    m.ext[:sets][:G] = (parameters_file["input_file_set_g"] |> read_csv |> DataFrame).generators
+    m.ext[:sets][:L] = (parameters_file["input_file_set_l"] |> read_csv |> DataFrame).lines
+    m.ext[:sets][:N] = (parameters_file["input_file_set_n"] |> read_csv |> DataFrame).nodes
 
     return m
 end
@@ -92,13 +92,13 @@ end
 function plot_avg_price_per_node(df_::DataFrame)
 
     df =(@chain df_ begin
-            groupby(:dim1)
-            combine(:Value => mean  => :Mean_val)
-            sort(:Mean_val,rev=true)
+            groupby(:Node)
+            combine(:Price => mean  => :Avg_price)
+            sort(:Avg_price,rev=true)
         end)
     
-    p = plot(df.dim1,
-             df.Mean_val*1e3/pWeight,
+    p = plot(df.Node,
+             df.Avg_price*1e3/pWeight,
              xlabel="Node [-]", 
              ylabel="Average λ [EUR/MWh]",
              legend=false
@@ -110,12 +110,12 @@ end
 function plot_avg_price_per_hour(df_::DataFrame)
 
     df =(@chain df_ begin
-            groupby(:dim2)
-            combine(:Value => mean  => :Mean_val)
+            groupby(:Time)
+            combine(:Price => mean  => :Avg_price)
         end)
     
-    p = plot(df.dim2,
-             df.Mean_val*1e3/pWeight,
+    p = plot(df.Time,
+             df.Avg_price*1e3/pWeight,
              xlabel="Timesteps [-]", 
              ylabel="Average λ [EUR/MWh]",
              legend=false
@@ -126,15 +126,15 @@ end
 
 function plot_tot_gen_per_hour(df_prod_::DataFrame,df_ens_::DataFrame,dem::Matrix)
    
-    df_prod = unstack(df_prod_, :dim2, :dim1, :Value)
+    df_prod = unstack(df_prod_, :Time, :Generation, :Production)
 
     df_ens =(@chain df_ens_ begin
-                groupby(:dim2)
-                combine(:Value => sum => :ENS)
+                groupby(:Time)
+                combine(:ENS => sum => :ENS)
             end)
 
     # create the grouped bar plot
-    p=groupedbar(df_prod.dim2,
+    p=groupedbar(df_prod.Time,
                  hcat(df_prod.OCGT, df_prod.CCGT, df_prod.WIND, df_prod.SOLAR, df_ens.ENS),
                  bar_position = :stack,
                  label=["OCGT" "CCGT" "WIND" "SOLAR" "ENS"],                 
@@ -152,14 +152,20 @@ function plot_tot_gen_per_hour(df_prod_::DataFrame,df_ens_::DataFrame,dem::Matri
     return p
 end
 
-function plot_tot_inv_per_gen(df_::DataFrame)
+function plot_tot_inv_per_gen(df_::DataFrame,dict::Dict)
     
-    p = bar(df_.dim1,
-             df_.Value,
-             xlabel="Generation [-]", 
-             ylabel="Units [-]",
-             legend=false
-             )
+    df_cap = DataFrame("Generation" => collect(keys(dict)),
+                       "pUnitCap"   => collect(values(dict))
+                      )
+    
+    df = innerjoin(df_,df_cap,on=:Generation)
+
+    p = bar(df.Generation,
+            df.Investment .* df.pUnitCap /1e3,
+            xlabel="Generation [-]", 
+            ylabel="Capacity [GW]",
+            legend=false
+           )
              
     return p
 end

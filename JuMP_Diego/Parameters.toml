@@ -11,3 +11,6 @@ input_file_dem     = "iGEP_data_demand.csv"
 input_file_gen_ava = "iGEP_data_generation_availability.csv"
 input_file_gen     = "iGEP_data_generation.csv"
 input_file_lines   = "iGEP_data_transmission_lines.csv"
+
+# output folder
+outputs_dir = "outputs"
