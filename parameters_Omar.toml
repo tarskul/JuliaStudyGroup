@@ -1,13 +1,17 @@
 
 
+[to_execute]
+file_reading = false
+power_systems = true
+
 [locations]
 [locations.work]
 latitude = 52.1
 
 [files]
-excel_file_source_sheet = 'Sheet1'
+excel_file_source_sheet = "Sheet1"
 [files.output]
-dataframe_name = "example"
+
 folder = "Output_Omar"
 excel_sheet_name = "test_sheet"
 excel_anchor_cell = "C26"
@@ -16,8 +20,22 @@ chosen_output_formats = ["csv","feather","h5","parquet","json","xlsx"]
 #Set to true or false if you want the writing function to write to these formats
 csv = true
 [files.input]
-source_folder = 'Input_Omar'
+source_folder = "Input_Omar"
 
 [example_dataframe]
-countries = ["Netehrlands","Switzerland","Kiribati","India"]
+countries = ["Netherlands","Switzerland","Kiribati","India"]
 energy_levels = [1.989,1.602,0.26,0.42]
+
+[power_plants]
+minimal_demand = 26 # GWh
+maximal_demand = 42 # GWh
+number_of_power_plants = 26
+minimal_plant_variable_costs = 0.05 # million €/GWh (or €/kWh)
+maximal_plant_variable_costs = 0.1 # million €/GWh (or €/kWh)
+renewables_variable_costs = 0.01 #  million €/GWh (or €/kWh)
+renewables_bottom_availability_factor = 0.26
+renewable_capacity_range_steps = 250
+model_iterations = 1000
+plant_characteristics_in_iteration = false
+chosen_marker_size = 0.1
+chosen_marker_alpha = 0.26
