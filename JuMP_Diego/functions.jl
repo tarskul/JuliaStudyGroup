@@ -59,6 +59,7 @@ end
 Returns a `DataFrame` with the values of the variables from the JuMP container `var`.
 The column names of the `DataFrame` can be specified for the indexing columns in `dim_names`,
 and the name of the data value column by a Symbol `value_col` e.g. :Value
+function from: https://discourse.julialang.org/t/extracting-jump-results/51429/6
 """
 function convert_jump_container_to_df(var::JuMP.Containers.DenseAxisArray;
     dim_names::Vector{Symbol}=Vector{Symbol}(),
@@ -120,5 +121,45 @@ function plot_avg_price_per_hour(df_::DataFrame)
              legend=false
              )
 
+    return p
+end
+
+function plot_tot_gen_per_hour(df_prod_::DataFrame,df_ens_::DataFrame,dem::Matrix)
+   
+    df_prod = unstack(df_prod_, :dim2, :dim1, :Value)
+
+    df_ens =(@chain df_ens_ begin
+                groupby(:dim2)
+                combine(:Value => sum => :ENS)
+            end)
+
+    # create the grouped bar plot
+    p=groupedbar(df_prod.dim2,
+                 hcat(df_prod.OCGT, df_prod.CCGT, df_prod.WIND, df_prod.SOLAR, df_ens.ENS),
+                 bar_position = :stack,
+                 label=["OCGT" "CCGT" "WIND" "SOLAR" "ENS"],                 
+                )
+
+    plot!(p, T, sum(dem,dims=1)',
+          linewidth=3,
+          lc=:black,
+          xlabel="Timesteps [-]", 
+          ylabel="Production [MWh]",
+          label="DEM",
+          legend=:outertopright
+         );
+                
+    return p
+end
+
+function plot_tot_inv_per_gen(df_::DataFrame)
+    
+    p = bar(df_.dim1,
+             df_.Value,
+             xlabel="Generation [-]", 
+             ylabel="Units [-]",
+             legend=false
+             )
+             
     return p
 end

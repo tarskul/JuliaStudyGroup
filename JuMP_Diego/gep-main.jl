@@ -168,36 +168,27 @@ pUnitCap = m.ext[:parameters][:pUnitCap]
 # variables/expressions
 vGenInv   = value.(m.ext[:variables][:vGenInv  ])
 vGenProd  = value.(m.ext[:variables][:vGenProd ])
+vLossLoad = value.(m.ext[:variables][:vLossLoad])
 λ         = dual.(m.ext[:constraints][:eNodeBal])
 
 # create arrays for plotting
 λvec   = [1e3*λ[n,t]/pWeight         for n in N, t in T]
 gvec   = [vGenProd[g,t]/1e3          for g in G, t in T]
-dvec   = [pDemand[n,t]/1e3           for n in N, t in T]
+dvec   = [pDemand[n,t]               for n in N, t in T]
 capvec = [pUnitCap[g]*vGenInv[g]/1e3 for g in G        ]
 
 # average electricity price price
-p1a = convert_jump_container_to_df(λ)  |> plot_avg_price_per_node
-p1b = convert_jump_container_to_df(λ)  |> plot_avg_price_per_hour
+p1a = convert_jump_container_to_df(λ)  |> plot_avg_price_per_node;
+p1b = convert_jump_container_to_df(λ)  |> plot_avg_price_per_hour;
 
 # dispatch
-p2 = groupedbar(transpose(gvec[:,:]),
-    legend = false,
-    bar_position = :stack,
-);
-plot!(p2, T, sum(dvec,dims=1)',
-    xlabel="Timesteps [-]",
-    ylabel="Generation [GWh]",
-    linewidth=3,
-    lc=:black,
-);
+df_prod = convert_jump_container_to_df(vGenProd)
+df_ens  = convert_jump_container_to_df(vLossLoad)
+
+p2 = plot_tot_gen_per_hour(df_prod,df_ens,dvec);
 
 # capacity
-p3 = bar(capvec, 
-    label=false,
-    xlabel="Generator [-]",
-    ylabel="New capacity [GW]",
-);
+p3 = convert_jump_container_to_df(vGenInv) |> plot_tot_inv_per_gen;
 
 # Combine    
 plot(p1a, p1b, p2, p3, layout = (2, 2))
