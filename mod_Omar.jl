@@ -44,7 +44,7 @@ function dataframe_from_file(source_file,source_folder,parameters_file)
     )
 
     source_file_path= source_folder*"/"*source_file
-    file_extension = split(source_file,".")[2]
+    file_extension = split(source_file,".")[end]
     source_dataframe = DataFrame()
     dataframe_obtained = falseaaaa
 
@@ -86,7 +86,7 @@ end
 """
 This `returns a Dataframe based on inputs in the parameters file`
 """
-function example_dataframe(parameters_file_name)
+function example_dataframe(parameters_file)
     parameters = TOML.parsefile(parameters_file)
     example_dataframe_dictionary = parameters["example_dataframe"]
     return(DataFrame(example_dataframe_dictionary))
