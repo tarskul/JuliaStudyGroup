@@ -19,6 +19,7 @@ using JuMP
 import HiGHS
 using Plots
 # using Makie
+using BenchmarkTools
 
 """
 This function makes a DataFrame from a file.
@@ -437,7 +438,7 @@ function power_systems_model(parameters_file)
     end
 
 
-    savefig("Output_omar/costs.png")
+    savefig("Output_Omar/costs.png")
 
     curtailment_plot = scatter()
     for iteration in range(length=model_iterations)
@@ -454,7 +455,7 @@ function power_systems_model(parameters_file)
             xlabel=renewables__xlabel, dpi=300
         )
     end
-    savefig("Output_omar/curtail.png")
+    savefig("Output_Omar/curtail.png")
 
 
     plant_production_plot = scatter()
@@ -472,7 +473,7 @@ function power_systems_model(parameters_file)
             xlabel=renewables__xlabel, dpi=300
         )
     end
-    savefig("Output_omar/plants.png")
+    savefig("Output_Omar/plants.png")
 
 
     renewables_plot = scatter()
@@ -491,7 +492,7 @@ function power_systems_model(parameters_file)
             xlabel=renewables__xlabel, dpi=300
         )
     end
-    savefig("Output_omar/renewables.png")
+    savefig("Output_Omar/renewables.png")
 
     # We made the plots in different figures. If we want one figure with
     # all these plots, we need to create a new plot (without an exclamation
@@ -519,7 +520,7 @@ function power_systems_model(parameters_file)
         title_plot, results_plot,
         layout=grid(2,1,heights=[0.1,0.9]), dpi=300)
     
-    savefig("Output_omar/power_plant_model.png")
+    savefig("Output_Omar/power_plant_model.png")
     
 end
 
@@ -539,8 +540,18 @@ if isinteractive() || abspath(PROGRAM_FILE) != @__FILE__
     end
 
     if to_execute["power_systems"]
-        power_systems_model(parameters_file)
+        if to_execute["benchmark_power_systems"]
+            benchmark_samples = to_execute["benchmark_samples"]
+            benchmark_evals = to_execute["benchmark_evals"]
+            power_benchmark = @benchmark power_systems_model(parameters_file) samples = benchmark_samples evals=benchmark_evals
+            BenchmarkTools.save(
+                 "Output_Omar/benchmark_power.json", power_benchmark
+            )
+        else
+            power_systems_model(parameters_file)
+        end
     end
+
 
 
 end
