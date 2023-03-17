@@ -119,6 +119,8 @@ function build_GEP_model!(m::Model)
     )
 
     # eMaxProd
+    # This equation applies to the generators connected to node using the pGenCon[g] == n in the constraints definition
+    # the get() function returns a default value of 1.0 if the parameter pGenAva doesn't exist
     m.ext[:constraints][:eMaxProd] = @constraint(m, [n in N, g in G, t in T ; pGenCon[g]==n],
         vGenProd[g,t]  <= get(pGenAva,(n,g,t),1.0)*pUnitCap[g]*vGenInv[g]
     )
