@@ -18,6 +18,7 @@ export loadfile,savefile,parameteranalysis,randomselection,linearmodel
     loadfile(;iofile="./Data_Tars/iofile.json")
 
 Loads a json file 'iofile' and returns a dictionary.
+Can also be used to load an excel file or a csv file.
 
 If the file does not exist, a warning is displayed and a default dictionary is returned instead.
 
@@ -42,14 +43,39 @@ function loadfile(;iofile="./Data_Tars/iofile_Tars.json")
 
     file_extension=split(iofile,".")[end]
     if isfile(iofile) && file_extension in keys(funcmap)
-        iodf=DataFrame(funcmap[file_extension](iofile))
-        iodb=Dict(pairs(eachcol(iodf)))
+        #iodf=DataFrame(funcmap[file_extension](iofile))
+        #iodb=Dict(pairs(eachcol(iodf)))
+        iodb=funcmap[file_extension](iofile)
     else
         println("The file does not exist, falling back to default dictionary.")
         iodb=Dict(
             "parameteranalysis" => Dict("i"=>0),
+            "linearmodel" => Dict(
+                "modeldata" => Dict("timesteps"=>10),
+                "unitdata" => Dict(
+                    "electricitydemand"=>Dict(
+                        "category"=>"demand",
+                        "I"=>0,
+                        "C"=>0,
+                        "pmax"=>10,
+                        "powerprofile"=>[-i/10 for i in 1:10],
+                    ),
+                    "gaspoweredplant"=>Dict(
+                        "category"=>"supply",
+                        "I"=>1,
+                        "C"=>10,
+                        "pmax"=>15,
+                    ),
+                    "nuclear"=>Dict(
+                        "category"=>"supply",
+                        "I"=>10,
+                        "C"=>1,
+                        "pmax"=>5,
+                    )
+                )
+            ),
             "modelresults" => Dict()
-            )
+        )
     end
     return iodb
 end
@@ -103,7 +129,7 @@ end
 
 Outer optimisation loop for selecting parameters and evaluating an inner optimisation loop for these parameters.
 """
-function parameteranalysis(;finish=0.0,i=0,itarget=10,t=0.0,ttarget=NaN,a=0.0,atarget=NaN,n=0,ntarget=NaN)
+function parameteranalysis(modelarguments;finish=0.0,i=0,itarget=10,t=0.0,ttarget=NaN,a=0.0,atarget=NaN,n=0,ntarget=NaN)
     while finish<1.0
         i+=1
         finishratios=(
@@ -114,31 +140,96 @@ function parameteranalysis(;finish=0.0,i=0,itarget=10,t=0.0,ttarget=NaN,a=0.0,at
     )
     finish=maximum(finishratios)
     end
-    modelresults=linearmodel()
+    modelresults=linearmodel(modelarguments["modeldata"],modelarguments["unitdata"])
     return Dict("i"=>i,"modelresults"=>modelresults)
 end
 
 function randomselection()
 end
 
-"""
-    linearmodel()
 
-Linear model using JuMP with the Ipopt solver.
 """
-function linearmodel(;y1=3,xo1=12,yo2=20,xc1=6,xc2=7,yc1=8,yc2=12,c1=100,c2=120)
+    preparemodel()
+
+Used as a link between loadfile and linearmodel. It checks whether the data is the correct format and adjusts if necessary.
+"""
+function preparemodel()
+end
+
+"""
+    linearmodel(modeldata,unitdata)
+
+Linear model using JuMP with the GLPK solver.
+
+# Example of the expected input data
+'''
+    modeldata=Dict(
+        "timesteps"=>10
+    )
+    unitdata=Dict(
+        "electricitydemand"=>Dict(
+            "category"=>"demand",
+            "I"=>0,
+            "C"=>0,
+            "pmax"=>10,
+            "powerprofile"=>[-i/10 for i in 1:10],
+        ),
+        "gaspoweredplant"=>Dict(
+            "category"=>"supply",
+            "I"=>1,
+            "C"=>10,
+            "pmax"=>15,
+        ),
+        "nuclear"=>Dict(
+            "category"=>"supply",
+            "I"=>10,
+            "C"=>1,
+            "pmax"=>5,
+        )
+    )
+'''
+"""
+function linearmodel(modeldata,unitdata)#unitdata::Dict;
+
+    constraintmapper=Dict(
+        "demand" => unit -> demand(model,unit),
+        "supply" => unit -> supply(model,unit)
+    )
+    function demand(model,unit)
+        @constraint(model,[t=1:timesteps],po[unit,t]==unitdata[unit]["powerprofile"][t])
+        @constraint(model,pc[unit]==pmax[unit])
+    end
+    function supply(model,unit)
+        @constraint(model,[t=1:timesteps],0<=po[unit,t])
+        @constraint(model,[t=1:timesteps],po[unit,t]<=pc[unit])
+        @constraint(model,0<=pc[unit]<=pmax[unit])
+    end
+
+
     model=Model(GLPK.Optimizer)
     set_silent(model)#set_optimizer_attribute(model,"print_level",0)#
+    timesteps=modeldata["timesteps"]
+    unitkeys=keys(unitdata)
+    #region parameters
+    I=Dict(unitkeys .=> [unitdata[unit]["I"] for unit in unitkeys])
+    C=Dict(unitkeys .=> [unitdata[unit]["C"] for unit in unitkeys])
+    pmax=Dict(unitkeys .=> [unitdata[unit]["C"] for unit in unitkeys])
+    #endregion
     #region variables
-    @variable(model,x>=0)
-    @variable(model,0<=y<=y1)
+    @variable(model,po[unitkeys,[t for t in 1:timesteps]])
+    @variable(model,pc[unitkeys])
     #endregion
     #region objective
-    @objective(model,Min,xo1*x+yo2*y)
+    @objective(model,Min,sum(I[u]*pc[u] for u in unitkeys)+sum(C[u]*po[u,t] for u in unitkeys for t in 1:timesteps))
     #endregion
-    #region contstraints
-    @constraint(model,con1,xc1*x+yc1*y>=c1)
-    @constraint(model,con2,xc2*x+yc2*y>=c2)
+    #region system contstraints
+    @constraint(model,[t=1:timesteps],sum(po[u,t] for u in unitkeys)==0)#;base_name="balance")
+    #endregion
+    #region technology contstraints
+    for unit in unitkeys
+        unitcategory=unitdata[unit]["category"]
+        constraintmapper[unitcategory](unit)
+    end
     #endregion
     #print(model)
     optimize!(model)
@@ -147,7 +238,20 @@ function linearmodel(;y1=3,xo1=12,yo2=20,xc1=6,xc2=7,yc1=8,yc2=12,c1=100,c2=120)
         @warn("The model was not solved correctly.")
         return
     end
-    return Dict("status"=>termination_status(model),"status_primal"=>primal_status(model),"status_dual"=>dual_status(model),"objective"=>objective_value(model),"x"=>value(x),"y"=>value(y),"shadow1"=>shadow_price(con1),"shadow2"=>shadow_price(con2))
+    modelresults=Dict(
+        "status"=>termination_status(model),
+        "status_primal"=>primal_status(model),
+        "status_dual"=>dual_status(model),
+        "objective"=>objective_value(model),
+        #"shadow"=>shadow_price(balance[1]),
+    )
+    for unit in unitkeys
+        modelresults[unit]=[value(po[unit,t]) for t in 1:timesteps]
+    end
+    #for t in 1:timesteps
+    #    modelresults[str("shadow$t")]=shadow_price(balance(t))
+    #end
+    return modelresults
 end
 
 # something with powermodels? Nah, not for the Mopo project. Same for machine learning in the selection process.
@@ -163,7 +267,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
     using .mod_Tars #using because this code block is outside of the module and . for a local module
     using DataFrames
     iodb=loadfile()#iofile="")
-    padb=parameteranalysis(;i=iodb["parameteranalysis"]["i"])
+    padb=parameteranalysis(iodb["linearmodel"];i=iodb["parameteranalysis"]["i"])
     iodb["parameteranalysis"]["i"]=pop!(padb,"i")
     savefile(DataFrame(padb["modelresults"]))
     merge!(iodb,padb)
