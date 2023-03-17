@@ -1,0 +1,5 @@
+# time steps (e.g., hours)
+time_steps = 24
+
+# Value of lost load (cost of not supplying energy) [kEUR/MWh]
+value_of_lost_load = 3.0
