@@ -5,54 +5,47 @@ Main module for a more complex exercise: a monte carlo analysis on the parameter
 """
 module mainmod_diego # for the module to be recognised it needs to be part of a package that is added in Julia
 
-using JSON, TOML
+using CSV, TOML
 using JuMP
 using Ipopt,Cbc,HiGHS,GLPK
 
-export loadfile,savefile,parameteranalysis,randomselection,linearmodel
+export loadfile,savefiles,parameteranalysis,randomselection,linearmodel
 
 """
-    loadfile(;iofile="./iofile.json")
+    loadfile(;input_file="./Data_Diego/input_file_Diego.toml")
 
-Loads a json file 'iofile' and returns a dictionary.
+Loads a toml file 'input_file_Diego' and returns a dictionary.
 
 If the file does not exist, a warning is displayed and a default dictionary is returned instead.
-
-# Examples
-```julia-repl
-julia> loadfile(iofile="")
-The file does not exist, falling back to default dictionary.
-Dict("parameteranalysis" => Dict("i" => 0))
-```
 """
-function loadfile(;iofile="./iofile_Diego.toml")
-    if isfile(iofile)
-        iodb=Dict{String, Integer}
-        #open(iofile, "r") do f
-            #dicttxt = read(f,String)  # file information to string
-            iodb=TOML.parsefile(iofile)  # parse and transform data
-        #end
+function loadfile(;ifile="./Data_Diego/input_file_Diego.toml")
+    if isfile(ifile)
+        idb=Dict{String, Integer}
+            idb=TOML.parsefile(ifile)  # parse and transform data
     else
         println("The file does not exist, falling back to default dictionary.")
-        iodb=Dict(
+        idb=Dict(
             "parameteranalysis" => Dict(
                 "i"=>0
                 )
             )
     end
-    return iodb
+    return idb
 end
 
 """
-    savefile(iodb::Dict;iofile="./iofile.json")
+savefiles(idb::Dict;padb::Dict;ifile="./Data_Diego/input_file_Diego.toml";ofile="./Data_Diego/output_file_Diego.csv")
 
-Saves a dictionary to a json file 'iofile'.
+Saves a dictionary to a csv file and updates the input data in the toml file.
 """
-function savefile(iodb::Dict;iofile="./iofile_Diego.toml")
-    iodb["modelresults"]=Dict(k => string(v) for (k,v) in pairs(iodb["modelresults"])) # to write in TOML files, all values must be the same type, so you need to put them all as string
-    open(iofile, "w") do f # write the file in TOML
-        TOML.print(f, iodb) 
+function savefiles(idb::Dict,padb::Dict;ifile="./Data_Diego/input_file_Diego.toml",ofile="./Data_Diego/output_file_Diego.csv")
+    # update input file
+    open(ifile, "w") do f # write the file in TOML
+        TOML.print(f, idb) 
     end
+
+    # write results in CSV
+    CSV.write(ofile, padb["modelresults"])
 end
 """
     parameteranalysis()
@@ -70,7 +63,7 @@ function parameteranalysis(;finish=0.0,i=0,itarget=10,t=0.0,ttarget=NaN,a=0.0,at
     )
     finish=maximum(finishratios)
     end
-    modelresults=linearmodel()
+    modelresults=linearmodel(;y1=i/itarget)
     return Dict("i"=>i,"modelresults"=>modelresults)
 end
 
@@ -83,7 +76,7 @@ end
 Linear model using JuMP with the Ipopt solver.
 """
 function linearmodel(;y1=3,xo1=12,yo2=20,xc1=6,xc2=7,yc1=8,yc2=12,c1=100,c2=120)
-    model=Model(GLPK.Optimizer)
+    model=Model(HiGHS.Optimizer)
     set_silent(model)#set_optimizer_attribute(model,"print_level",0)#
     #region variables
     @variable(model,x>=0)
@@ -112,3 +105,13 @@ function spinewrapper()
 end
 
 end#module end
+
+if isinteractive() || abspath(PROGRAM_FILE) == @__FILE__ 
+    # this is a pythonic way of doing things
+    # in Julia they typically make a separate example or test file, so perhaps we'll put this code in the jupyter file instead, then we can also remove the auxiliary file and add that code here instead
+    using .mainmod_diego #using because this code block is outside of the module and . for a local module
+    idb=loadfile()
+    padb=parameteranalysis(;i=idb["parameteranalysis"]["i"])
+    idb["parameteranalysis"]["i"]=pop!(padb,"i")
+    savefiles(idb,padb)
+end

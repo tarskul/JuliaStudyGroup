@@ -1,0 +1,9 @@
+first,second
+shadow2,-1.7142857142857142
+status_primal,FEASIBLE_POINT
+status,OPTIMAL
+objective,205.0285714285714
+x,15.085714285714285
+shadow1,-0.0
+status_dual,FEASIBLE_POINT
+y,1.2
