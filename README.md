@@ -92,7 +92,7 @@ Feel free to add training materials that you found useful.
 ![Git explained by git-tower](https://www.git-tower.com/learn/media/pages/git/ebook/en/command-line/remote-repositories/introduction/ca91d7d832-1673968486/basic-remote-workflow.png)
 
 ## Planning
-The meetings are scheduled to be held every friday from 10:00 to 11:00 (GMT) in Teams. The meetings will mostly be used to share our experiences. The agenda is a guideline. Additional topics are certainly welcome. Further discussions are also possible in the gitter rooms.
+The meetings are scheduled to be held every friday from 10:00 to 12:00 (GMT) in Teams. The first hour follows the schedule below, the second hour is a more relaxed continuation of the discussion. The meetings will mostly be used to share our experiences. The agenda is a guideline; additional topics are certainly welcome. Further discussions are also possible in the gitter rooms.
 
 day/month/2023
 
