@@ -12,7 +12,7 @@ using DataFrames
 using JuMP
 using Ipopt,Cbc,HiGHS,GLPK
 
-export loadfile,savefile,parameteranalysis,randomselection,linearmodel
+export main,loadfile,savefile,parameteranalysis,randomselection,linearmodel
 
 """
     loadfile(;iofile="./Data_Tars/iofile.json")
@@ -139,24 +139,40 @@ end
 
 Outer optimisation loop for selecting parameters and evaluating an inner optimisation loop for these parameters.
 """
-function parameteranalysis(iodb;finish=0.0,npi=10,i=0,itarget=10,t=0.0,ttarget=NaN,a=0.0,atarget=NaN,n=0,ntarget=NaN)
+function parameteranalysis(iodb;npi=10,finish=0.0,i=0,itarget=10,t=0.0,ttarget=NaN,a=0.0,atarget=NaN,n=0,ntarget=NaN,parallel=false)
     samples=iodb["samples"]
     selectionarguments=iodb["selection"]
     modelarguments=iodb["linearmodel"]
     while finish<1.0
         # random selection, for this exercise limited to unitdata (next time I might merge model data and unit data)
-        rawsamples=randomselection(selectionarguments;numberofsamples=npi)
+        samplenames,inputvalues=randomselection(selectionarguments;numberofsamples=npi)
         # correction of redundant samples (future feature)
         # run model
         t1=time()
-        for (samplename,modelinput) in rawsamples
-            unitdata=copy(modelarguments["unitdata"])
-            for (unitname,unitdict) in modelinput
-                merge!(unitdata[unitname],unitdict)
+        if parallel==true
+            nlist=zeros(length(samplenames))
+            Threads.@threads for sampleindex in eachindex(samplenames)
+                samplename=samplenames[sampleindex]
+                modelinput=inputvalues[sampleindex]
+                unitdata=copy(modelarguments["unitdata"])
+                for (unitname,unitdict) in modelinput
+                    merge!(unitdata[unitname],unitdict)
+                end
+                modeloutput=linearmodel(modelarguments["modeldata"],unitdata)
+                samples[samplename]=(modelinput,modeloutput)
+                nlist[sampleindex]=1
             end
-            modeloutput=linearmodel(modelarguments["modeldata"],unitdata)
-            samples[samplename]=(modelinput,modeloutput)
-            n+=1
+            n+=sum(nlist)
+        else
+            for (samplename,modelinput) in Dict(samplenames .=> inputvalues)
+                unitdata=copy(modelarguments["unitdata"])
+                for (unitname,unitdict) in modelinput
+                    merge!(unitdata[unitname],unitdict)
+                end
+                modeloutput=linearmodel(modelarguments["modeldata"],unitdata)
+                samples[samplename]=(modelinput,modeloutput)
+                n+=1
+            end
         end
         t2=time()
         # end conditions
@@ -206,16 +222,7 @@ function randomselection(datarange;numberofsamples=10,randomstep=0.1)
         push!(samplenames,samplename)
         push!(samplevalues,sampledata)
     end
-    return Dict(samplenames .=> samplevalues)
-end
-
-
-"""
-    preparemodel()
-
-Used as a link between loadfile and linearmodel. It checks whether the data is the correct format and adjusts if necessary.
-"""
-function preparemodel()
+    return samplenames,samplevalues#Dict(samplenames .=> samplevalues)
 end
 
 """
@@ -321,17 +328,24 @@ end
 function spinewrapper()
 end
 
+"""
+    main()
+Runs an example of the parameter analysis
+"""
+function main(;parallelcomputing=false,iofilelocation="")
+    iodb=loadfile(iofile=iofilelocation)
+    pasettings=Dict(Symbol(k) => v for (k,v) in iodb["parameteranalysis"])
+    pasettings[:parallel]=parallelcomputing
+    iodb=parameteranalysis(iodb;pasettings...)
+    #savefile(DataFrame(iodb["samples"]))
+    #savefile(iodb)
+end
+
 end#module end
 
 if abspath(PROGRAM_FILE) == @__FILE__
     # this is a pythonic way of doing things
     # in Julia they typically make a separate example or test file
     using .mod_Tars #using because this code block is outside of the module and . for a local module
-    #using DataFrames
-    iodb=loadfile()#iofile="")
-    pasettings=Dict(Symbol(k) => v for (k,v) in iodb["parameteranalysis"])
-    parameteranalysis(iodb;pasettings...)
-    #savefile(DataFrame(padb["modelresults"]))
-    #merge!(iodb,padb)
-    #savefile(iodb)
+    mod_Tars.main()
 end
