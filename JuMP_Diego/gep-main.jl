@@ -14,6 +14,10 @@ println("Done")
 using CSV
 using DataFrames
 using TOML
+using Random
+using Distributions
+
+Random.seed!(123) # Setting the seed
 
 # input file names and allocation from Parameters.toml
 parameters_file = "Parameters.toml" |> TOML.parsefile
@@ -39,7 +43,7 @@ set_attribute(m,"threads",2)
 # call functions to define the input data in the model
 define_sets!(m,parameters_file,scalars)
 process_time_series_data!(m,df_dem,df_gen_ava)
-process_parameters!(m,scalars,df_gen,df_lin)
+process_parameters!(m,parameters_file,scalars,df_gen,df_lin)
 
 # clear memory
 scalars    = nothing
@@ -50,7 +54,7 @@ df_gen_ava = nothing
 
 ## Step 3: construct your model
 # Greenfield GEP - single year
-function build_GEP_model!(m::Model)
+function build_GEP_model!(m::Model,CO2price::Float64)
     # Clear m.ext entries "variables", "expressions" and "constraints"
     m.ext[:variables] = Dict()
     m.ext[:expressions] = Dict()
@@ -67,14 +71,18 @@ function build_GEP_model!(m::Model)
     pGenAva = m.ext[:timeseries][:GenAva]
 
     # scalar parameters
-    pVOLL   = m.ext[:parameters][:pVOLL]  
-    pWeight = m.ext[:parameters][:pWeight]
+    pVOLL    = m.ext[:parameters][:pVOLL]  
+    pWeight  = m.ext[:parameters][:pWeight]
+    pCO2Tech = m.ext[:parameters][:pCO2Tech]
+    pCO2Cost = CO2price # m.ext[:parameters][:pCO2Cost]    
         
     # generator parameters
     pInvCost = m.ext[:parameters][:pInvCost]
     pVarCost = m.ext[:parameters][:pVarCost]
     pUnitCap = m.ext[:parameters][:pUnitCap]
-    pGenCon  = m.ext[:parameters][:pGenCon] 
+    pGenCon  = m.ext[:parameters][:pGenCon]
+    pEmisFac = m.ext[:parameters][:pEmisFac]
+    pGenTech = m.ext[:parameters][:pGenTech]     
     
     # line parameters
     pNodeA  = m.ext[:parameters][:pNodeA] 
@@ -104,7 +112,8 @@ function build_GEP_model!(m::Model)
 
     # eOpeCost
     m.ext[:constraints][:eOpeCost] = @constraint(m,
-        vOpeCost ==( sum(pVarCost[g]*vGenProd[g,t]  for g in G, t in T)
+        vOpeCost ==( sum(         pVarCost[g]*vGenProd[g,t]  for g in G, t in T)+
+                     sum(pCO2Cost*pEmisFac[g]*vGenProd[g,t]  for g in G, t in T if pGenTech[g] in pCO2Tech)
                     +sum(pVOLL      *vLossLoad[n,t] for n in N, t in T)) * pWeight
     )
 
@@ -128,28 +137,54 @@ function build_GEP_model!(m::Model)
     return m
 end
 
-# Build your model
-build_GEP_model!(m)
+# Monte Carlo simulation
+
+# distribution for CO2 prices
+CO2_dist = Normal(parameters_file["CO2_price_kEUR_t_mean"],
+                  parameters_file["CO2_price_kEUR_t_st"])
+
+# sampling the distribution
+CO2_samples = rand(CO2_dist,parameters_file["iterations"])
+
+# main monte carlo loop
+for i in 1:parameters_file["iterations"]
+    # get the sample and avoiding negative values
+    CO2price = max(CO2_samples[i],0)
+
+    # Build your model
+    build_GEP_model!(m,CO2price)
+
+    ## Step 4: solve
+    optimize!(m)
+
+    # check termination status
+    print(
+        """
+
+        Iteration: $i Termination status: $(termination_status(m))
+
+        """
+    )
+
+    # print some output
+    @show value(m.ext[:objective])
+    MonteCarloResults = Dict("iteration" => i,
+                             "status"=>termination_status(m),
+                             "status_primal"=>primal_status(m),
+                             "status_dual"=>dual_status(m),
+                             "objective"=>objective_value(m),
+                             "CO2_Price"=>CO2price,
+                             "Investment"=> value.(m.ext[:variables][:vGenInv])
+                             )
+
+end
 
 # print lp file
 f = open("gep-model.lp", "w")
 print(f, m)
 close(f)
 
-## Step 4: solve
-optimize!(m)
 
-# check termination status
-print(
-    """
-
-    Termination status: $(termination_status(m))
-
-    """
-)
-
-# print some output
-@show value(m.ext[:objective])
 
 ## Step 5: interpretation
 using Plots

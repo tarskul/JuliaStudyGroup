@@ -31,20 +31,24 @@ function process_time_series_data!(m::Model, df_dem::DataFrame, df_gen_ava::Data
     return m
 end
 
-function process_parameters!(m::Model, scalars::Dict,df_gen::DataFrame,df_lin::DataFrame)
+function process_parameters!(m::Model, parameters_file::Dict, scalars::Dict,df_gen::DataFrame,df_lin::DataFrame)
 
     # generate a dictonary "parameters"
     m.ext[:parameters] = Dict()
 
     # input parameters
-    m.ext[:parameters][:pVOLL]    = scalars["value_of_lost_load"]
-    m.ext[:parameters][:pWeight]  = 8760/scalars["time_steps"]
+    m.ext[:parameters][:pVOLL]     = scalars["value_of_lost_load"]
+    m.ext[:parameters][:pWeight]   = 8760/scalars["time_steps"]
+    m.ext[:parameters][:pCO2Tech]  = parameters_file["tech_to_apply_CO2_cost"]
+    m.ext[:parameters][:pCO2Cost]  = parameters_file["CO2_price_kEUR_t_mean"]
     
     # generators input data
     m.ext[:parameters][:pInvCost] = Dict(zip(df_gen.Generator,df_gen.InvCost_kEUR_MW_year))
     m.ext[:parameters][:pVarCost] = Dict(zip(df_gen.Generator,df_gen.VarCost_kEUR_per_MWh))
     m.ext[:parameters][:pUnitCap] = Dict(zip(df_gen.Generator,df_gen.UnitCap_MW          ))
     m.ext[:parameters][:pGenCon ] = Dict(zip(df_gen.Generator,df_gen.Node                ))
+    m.ext[:parameters][:pEmisFac] = Dict(zip(df_gen.Generator,df_gen.EmisFac_tCO2_per_MWh))
+    m.ext[:parameters][:pGenTech] = Dict(zip(df_gen.Generator,df_gen.Technology          ))
 
     # lines input data
     m.ext[:parameters][:pNodeA]  = Dict(zip(df_lin.Line,df_lin.Node_from))
