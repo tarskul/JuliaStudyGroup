@@ -139,20 +139,23 @@ end
 
 # Monte Carlo simulation
 
-# distribution for CO2 prices
-CO2_dist = Normal(parameters_file["CO2_price_kEUR_t_mean"],
-                  parameters_file["CO2_price_kEUR_t_st"])
+# distribution for CO2 prices - truncating the values between [0,VOLL/2]
+CO2_dist = Truncated(Normal(parameters_file["CO2_price_kEUR_t_mean"],
+                            parameters_file["CO2_price_kEUR_t_st"]),
+                            0, m.ext[:parameters][:pVOLL]/2
+                    )
 
 # sampling the distribution
 CO2_samples = rand(CO2_dist,parameters_file["iterations"])
 
+# dictionary to save the results
+MonteCarloResults=Dict()
+
 # main monte carlo loop
 for i in 1:parameters_file["iterations"]
-    # get the sample and avoiding negative values
-    CO2price = max(CO2_samples[i],0)
 
     # Build your model
-    build_GEP_model!(m,CO2price)
+    build_GEP_model!(m,CO2_samples[i])
 
     ## Step 4: solve
     optimize!(m)
@@ -168,23 +171,23 @@ for i in 1:parameters_file["iterations"]
 
     # print some output
     @show value(m.ext[:objective])
-    MonteCarloResults = Dict("iteration" => i,
-                             "status"=>termination_status(m),
-                             "status_primal"=>primal_status(m),
-                             "status_dual"=>dual_status(m),
-                             "objective"=>objective_value(m),
-                             "CO2_Price"=>CO2price,
-                             "Investment"=> value.(m.ext[:variables][:vGenInv])
-                             )
-
+    merge!(MonteCarloResults,
+            Dict(i => Dict("iteration" => i,
+                           "status"=>termination_status(m),
+                           "status_primal"=>primal_status(m),
+                           "status_dual"=>dual_status(m),
+                           "objective"=>objective_value(m),
+                           "CO2_Price"=>CO2_samples[i],
+                           "Investment"=> value.(m.ext[:variables][:vGenInv])
+                           )
+                )
+          )
 end
 
 # print lp file
 f = open("gep-model.lp", "w")
 print(f, m)
 close(f)
-
-
 
 ## Step 5: interpretation
 using Plots
