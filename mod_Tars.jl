@@ -49,7 +49,18 @@ function loadfile(;iofile="./Data_Tars/iofile_Tars.json")
     else
         println("The file does not exist, falling back to default dictionary.")
         iodb=Dict(
-            "parameteranalysis" => Dict("i"=>0),
+            "parameteranalysis" => Dict("i"=>0,"n"=>0,"t"=>0.0),
+            "selection" => Dict(
+                "gaspoweredplant" => Dict(
+                    "I"=>[0.1,10],
+                    "C"=>[1,100]
+                ),
+                "nuclear" => Dict(
+                    "I" => [1,100],
+                    "C" => [0.1,10]
+                )
+            ),
+            "samples" => Dict(),
             "linearmodel" => Dict(
                 "modeldata" => Dict("timesteps"=>10),
                 "unitdata" => Dict(
@@ -73,8 +84,7 @@ function loadfile(;iofile="./Data_Tars/iofile_Tars.json")
                         "pmax"=>5,
                     )
                 )
-            ),
-            "modelresults" => Dict()
+            )
         )
     end
     return iodb
@@ -129,22 +139,74 @@ end
 
 Outer optimisation loop for selecting parameters and evaluating an inner optimisation loop for these parameters.
 """
-function parameteranalysis(modelarguments;finish=0.0,i=0,itarget=10,t=0.0,ttarget=NaN,a=0.0,atarget=NaN,n=0,ntarget=NaN)
+function parameteranalysis(iodb;finish=0.0,npi=10,i=0,itarget=10,t=0.0,ttarget=NaN,a=0.0,atarget=NaN,n=0,ntarget=NaN)
+    samples=iodb["samples"]
+    selectionarguments=iodb["selection"]
+    modelarguments=iodb["linearmodel"]
     while finish<1.0
+        # random selection, for this exercise limited to unitdata (next time I might merge model data and unit data)
+        rawsamples=randomselection(selectionarguments;numberofsamples=npi)
+        # correction of redundant samples (future feature)
+        # run model
+        t1=time()
+        for (samplename,modelinput) in rawsamples
+            unitdata=copy(modelarguments["unitdata"])
+            for (unitname,unitdict) in modelinput
+                merge!(unitdata[unitname],unitdict)
+            end
+            modeloutput=linearmodel(modelarguments["modeldata"],unitdata)
+            samples[samplename]=(modelinput,modeloutput)
+            n+=1
+        end
+        t2=time()
+        # end conditions
+        t+=t2-t1
         i+=1
-        finishratios=(
-        !isnan(itarget) ? i/itarget : 0.0,
-        !isnan(ttarget) ? t/ttarget : 0.0,
-        !isnan(ntarget) ? n/ntarget : 0.0,
-        !isnan(atarget) ? a/atarget : 0.0
-    )
-    finish=maximum(finishratios)
+        finishratios=(# bool ? x : y implies if bool==True then do x else do y
+            !isnan(itarget) ? i/itarget : 0.0,
+            !isnan(ttarget) ? t/ttarget : 0.0,
+            !isnan(ntarget) ? n/ntarget : 0.0,
+            !isnan(atarget) ? a/atarget : 0.0
+        )
+        finish=maximum(finishratios)
+        # save data (with signal interuption)
+        iodb["samples"]=samples
+        merge!(iodb,Dict("parameteranalysis"=>Dict("i"=>i,"n"=>n,"t"=>t,"finish"=>finish)))
+        savefile(iodb)
     end
-    modelresults=linearmodel(modelarguments["modeldata"],modelarguments["unitdata"])
-    return Dict("i"=>i,"modelresults"=>modelresults)
+    return iodb
 end
 
-function randomselection()
+"""
+    randomselection(datarange,numberofsamples)
+Selects random values for each range of data provided
+
+Example of the expected data
+'''
+Data=Dict(
+    "category1" => [1,2],
+    "category2" => [5,10]
+)
+'''
+"""
+function randomselection(datarange;numberofsamples=10,randomstep=0.1)
+    samplenames=[]
+    samplevalues=[]
+    for _ in 1:numberofsamples
+        samplename="_"
+        sampledata=Dict()
+        for (categoryname,categoryvalue) in datarange
+            sampledata[categoryname]=Dict()
+            for (parametername,parametervalue) in categoryvalue
+                randomvalue=rand(parametervalue[1]:randomstep:parametervalue[2])#rand(min,max,#)
+                samplename=samplename*string(randomvalue)*"_"
+                sampledata[categoryname][parametername]=randomvalue
+            end
+        end
+        push!(samplenames,samplename)
+        push!(samplevalues,sampledata)
+    end
+    return Dict(samplenames .=> samplevalues)
 end
 
 
@@ -249,7 +311,7 @@ function linearmodel(modeldata,unitdata)#unitdata::Dict;
         modelresults[unit]=[value(po[unit,t]) for t in 1:timesteps]
     end
     #for t in 1:timesteps
-    #    modelresults[str("shadow$t")]=shadow_price(balance(t))
+    #    modelresults[string("shadow$t")]=shadow_price(balance(t))
     #end
     return modelresults
 end
@@ -265,11 +327,11 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # this is a pythonic way of doing things
     # in Julia they typically make a separate example or test file
     using .mod_Tars #using because this code block is outside of the module and . for a local module
-    using DataFrames
+    #using DataFrames
     iodb=loadfile()#iofile="")
-    padb=parameteranalysis(iodb["linearmodel"];i=iodb["parameteranalysis"]["i"])
-    iodb["parameteranalysis"]["i"]=pop!(padb,"i")
-    savefile(DataFrame(padb["modelresults"]))
-    merge!(iodb,padb)
-    savefile(iodb)
+    pasettings=Dict(Symbol(k) => v for (k,v) in iodb["parameteranalysis"])
+    parameteranalysis(iodb;pasettings...)
+    #savefile(DataFrame(padb["modelresults"]))
+    #merge!(iodb,padb)
+    #savefile(iodb)
 end

@@ -263,22 +263,15 @@ function solve_dispatch(
     @objective(
         model,
         Min,
-        sum(
-            plant_production[plant_index] * plant_variable_costs[plant_index]
-            for plant_index in 1:number_of_power_plants 
-        )
-        + renewable_production * renewables_variable_costs
+        sum(plant_production .* plant_variable_costs)
+        #.* is for piecewise product
+        + renewable_production*renewables_variable_costs
     )
 
     # The constraint is the the production matches the demand
     @constraint(
         model,
-        sum(
-            plant_production[plant_index] 
-            for plant_index in 1:number_of_power_plants
-        ) 
-        + renewable_production
-        == demand
+        sum(plant_production) + renewable_production == demand
     )
 
 
