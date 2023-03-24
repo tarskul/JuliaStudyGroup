@@ -150,8 +150,11 @@ function parameteranalysis(iodb;finish=0.0,npi=10,i=0,itarget=10,t=0.0,ttarget=N
         # run model
         t1=time()
         for (samplename,modelinput) in rawsamples
-            modeldata=merge(modelarguments["modeldata"],modelinput)
-            modeloutput=linearmodel(modeldata,modelarguments["unitdata"])
+            unitdata=copy(modelarguments["unitdata"])
+            for (unitname,unitdict) in modelinput
+                merge!(unitdata[unitname],unitdict)
+            end
+            modeloutput=linearmodel(modelarguments["modeldata"],unitdata)
             samples[samplename]=(modelinput,modeloutput)
             n+=1
         end
