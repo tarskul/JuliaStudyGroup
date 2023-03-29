@@ -11,6 +11,8 @@ using XLSX
 using DataFrames
 using JuMP
 using Ipopt,Cbc,HiGHS,GLPK
+#using Plots
+using StatsPlots
 
 export main,loadfile,savefile,parameteranalysis,randomselection,linearmodel
 
@@ -314,18 +316,58 @@ function linearmodel(modeldata,unitdata)#unitdata::Dict;
         "objective"=>objective_value(model),
         #"shadow"=>shadow_price(balance[1]),
     )
+    unitresults=Dict()
     for unit in unitkeys
-        modelresults[unit]=[value(po[unit,t]) for t in 1:timesteps]
+        unitresults[unit]=Dict(
+            "capacity"=>value(pc[unit]),
+            "powerprofile"=>[value(po[unit,t]) for t in 1:timesteps]
+        )
     end
     #for t in 1:timesteps
     #    modelresults[string("shadow$t")]=shadow_price(balance(t))
     #end
-    return modelresults
+    return Dict("modelresults"=>modelresults,"unitresults"=>unitresults)
 end
 
 # something with powermodels? Nah, not for the Mopo project. Same for machine learning in the selection process.
 
 function spinewrapper()
+end
+
+"""
+    visualisation()
+Visualisation of the results of the parameter analysis.
+"""
+function visualisation(iodb;plotfolder="./Data_Tars/",extensions=["png","svg","pdf"])#perhaps also selection
+    samples=iodb["samples"]
+    modeldata=iodb["linearmodel"]["modeldata"]
+    unitdata=iodb["linearmodel"]["unitdata"]
+
+    # process data from dictionary to dataframes
+        #sampledata=DataFrame()
+    
+    #profile plot
+    profileplot=plot(legend=:outerright)
+    timesteps=[t for t in 1:modeldata["timesteps"]]
+    for (samplename,sample) in samples
+        for (unitname,unit) in sample[2]["unitresults"]
+            if unitdata[unitname]["category"]!="demand"
+                plot!(timesteps,unit["powerprofile"],label=samplename*"_"*unitname)
+            end
+        end
+    end
+    for extension in extensions
+        savefig(profileplot,plotfolder*"profileplot."*extension)
+    end
+
+    # scatter plots
+    # violinbox
+
+    #@df sampledata violin(string.(:VoicePart), :Height, linewidth=0)
+    #@df sampledata boxplot!(string.(:VoicePart), :Height, fillalpha=0.75, linewidth=2)
+    #@df sampledata dotplot!(string.(:VoicePart), :Height, marker=(:black, stroke(0)))
+
+    # gif?
 end
 
 """
@@ -337,6 +379,7 @@ function main(;parallelcomputing=false,iofilelocation="")
     pasettings=Dict(Symbol(k) => v for (k,v) in iodb["parameteranalysis"])
     pasettings[:parallel]=parallelcomputing
     iodb=parameteranalysis(iodb;pasettings...)
+    visualisation(iodb)
     #savefile(DataFrame(iodb["samples"]))
     #savefile(iodb)
 end
