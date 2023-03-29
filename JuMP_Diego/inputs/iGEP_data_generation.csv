@@ -1,5 +1,5 @@
 Generator,Node,Technology,InvCost_kEUR_MW_year,VarCost_kEUR_per_MWh,UnitCap_MW,EmisFac_tCO2_per_MWh
 OCGT,node_1,Thermal,25,0.07,100,0.25
-CCGT,node_1,Thermal,40,0.05,400,0.2
-WIND,node_2,Renewable,70,0.001,50,0
-SOLAR,node_3,Renewable,50,0,10,0
+CCGT,node_2,Thermal,40,0.05,400,0.2
+WIND,node_2,Renewable,70,0.01,50,0
+SOLAR,node_3,Renewable,50,0.001,10,0

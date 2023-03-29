@@ -1,4 +1,4 @@
-using JuMP, HiGHS, DataFrames, Chain
+using JuMP, HiGHS, DataFrames, Chain, DataFramesMeta, StatsPlots, Plots
 function append_input_dir(file_name)
     return joinpath(".",parameters_file["inputs_dir"], file_name)
 end
@@ -59,6 +59,70 @@ function process_parameters!(m::Model, parameters_file::Dict, scalars::Dict,df_g
     return m
 end
 
+
+function run_mc_sim(m::Model, parameters_file::Dict,CO2_samples::Vector,RES_avai_samples::Dict)
+
+    # outputs    
+    df_inv_mc = DataFrame()
+    df_mc_summary = DataFrame()
+
+    # main monte carlo loop
+    for i in 1:parameters_file["iterations"]
+
+        # 
+        RES_avai = Dict(k => RES_avai_samples[k][i] for k in keys(RES_avai_samples))
+
+        # Build your model
+        build_GEP_model!(m,CO2_samples[i],RES_avai)
+
+        ## Step 4: solve
+        optimize!(m)
+
+        # check termination status
+        print(
+            """
+
+            Iteration: $i Termination status: $(termination_status(m))
+
+            """
+        )
+
+        # print some output
+        @show value(m.ext[:objective])
+
+        # save a summary in a df
+        df_summary_iter = DataFrame(
+            iteration    =[i],
+            CO2_price    =[CO2_samples[i]],
+            status       =[termination_status(m)],
+            status_primal=[primal_status(m)],
+            status_dual  =[dual_status(m)],
+            objective    =[objective_value(m)]
+        )
+        df_mc_summary = vcat(df_mc_summary,df_summary_iter)
+
+        # save the investment at each iteration
+        df_inv_iter = convert_jump_container_to_df(value.(m.ext[:variables][:vGenInv]),dim_names=[:Generation],value_col=:Investment)
+        # add information for each iteration
+        df_inv_iter[!,"Iteration"] .= i
+        df_inv_iter[!,"CO2 Price"] .= CO2_samples[i]
+        # save the information
+        df_inv_mc = vcat(df_inv_mc,df_inv_iter)
+
+        # clear the auxiliary dfs
+        df_inv_iter     = nothing
+        df_summary_iter = nothing
+    end
+
+    # print lp file
+    f = open("gep-model.lp", "w")
+    print(f, m)
+    close(f)    
+
+    return df_mc_summary, df_inv_mc
+end
+
+
 """
 Returns a `DataFrame` with the values of the variables from the JuMP container `var`.
 The column names of the `DataFrame` can be specified for the indexing columns in `dim_names`,
@@ -108,6 +172,46 @@ function plot_avg_price_per_node(df_::DataFrame)
              legend=false
             )
 
+    return p
+end
+
+function plot_marginalkde(x::Vector,
+                          y::Vector;
+                          x_label="CO2 price [€/t]",
+                          y_label="Total Cost [MEUR]",
+                          HasLegend=false)
+    p = marginalkde(x,
+                    y,
+                    xlabel=x_label, 
+                    ylabel=y_label,
+                    legend=HasLegend
+                    )
+    return p
+end
+
+function plot_investment_dist(df_::DataFrame,dict::Dict)
+
+    df_cap = DataFrame("Generation" => collect(keys(dict)),
+                       "pUnitCap"   => collect(values(dict))
+                      )
+    
+    df = innerjoin(df_,df_cap,on=:Generation)    
+
+    @transform!(df, :Generation = categorical(:Generation))
+
+    p = violin(string.(df.Generation), df.Investment .* df.pUnitCap, linewidth=0)
+
+    boxplot!(string.(df.Generation), df.Investment .* df.pUnitCap , fillalpha=0.75, linewidth=2)
+    dotplot!(string.(df.Generation), df.Investment .* df.pUnitCap , marker=(:black, stroke(0)),
+             xlabel="Technology [-]", ylabel="Investment [MW]", legend=false)
+
+    return p
+end
+
+function plot_corr(df_::DataFrame)
+    df = unstack(df_,:Generation,:Investment)
+    ncols = ncol(df)
+    p = @df df corrplot(cols(2:ncols), grid = false)
     return p
 end
 

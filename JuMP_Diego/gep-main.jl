@@ -54,7 +54,7 @@ df_gen_ava = nothing
 
 ## Step 3: construct your model
 # Greenfield GEP - single year
-function build_GEP_model!(m::Model,CO2price::Float64)
+function build_GEP_model!(m::Model,CO2price::Float64,RES_avai::Dict)
     # Clear m.ext entries "variables", "expressions" and "constraints"
     m.ext[:variables] = Dict()
     m.ext[:expressions] = Dict()
@@ -82,7 +82,8 @@ function build_GEP_model!(m::Model,CO2price::Float64)
     pUnitCap = m.ext[:parameters][:pUnitCap]
     pGenCon  = m.ext[:parameters][:pGenCon]
     pEmisFac = m.ext[:parameters][:pEmisFac]
-    pGenTech = m.ext[:parameters][:pGenTech]     
+    pGenTech = m.ext[:parameters][:pGenTech]
+    pRESAvai = RES_avai     
     
     # line parameters
     pNodeA  = m.ext[:parameters][:pNodeA] 
@@ -131,7 +132,7 @@ function build_GEP_model!(m::Model,CO2price::Float64)
     # This equation applies to the generators connected to node using the pGenCon[g] == n in the constraints definition
     # the get() function returns a default value of 1.0 if the parameter pGenAva doesn't exist
     m.ext[:constraints][:eMaxProd] = @constraint(m, [n in N, g in G, t in T ; pGenCon[g]==n],
-        vGenProd[g,t]  <= get(pGenAva,(n,g,t),1.0)*pUnitCap[g]*vGenInv[g]
+        vGenProd[g,t]  <= get(pGenAva,(n,g,t),1.0)*get(pRESAvai,g,1.0)*pUnitCap[g]*vGenInv[g]
     )
 
     return m
@@ -145,55 +146,26 @@ CO2_dist = Truncated(Normal(parameters_file["CO2_price_kEUR_t_mean"],
                             0, m.ext[:parameters][:pVOLL]/2
                     )
 
+RES_avai_dist = Uniform(parameters_file["RES_avail_min"],
+                        parameters_file["RES_avail_max"])                    
+
 # sampling the distribution
 CO2_samples = rand(CO2_dist,parameters_file["iterations"])
 
-# dictionary to save the results
-MonteCarloResults=Dict()
+RES_avai_samples = Dict(g => rand(RES_avai_dist,parameters_file["iterations"])
+                                    for g in m.ext[:sets][:G]
+                                        if  m.ext[:parameters][:pGenTech][g] ∉ m.ext[:parameters][:pCO2Tech])
 
-# main monte carlo loop
-for i in 1:parameters_file["iterations"]
-
-    # Build your model
-    build_GEP_model!(m,CO2_samples[i])
-
-    ## Step 4: solve
-    optimize!(m)
-
-    # check termination status
-    print(
-        """
-
-        Iteration: $i Termination status: $(termination_status(m))
-
-        """
-    )
-
-    # print some output
-    @show value(m.ext[:objective])
-    merge!(MonteCarloResults,
-            Dict(i => Dict("iteration" => i,
-                           "status"=>termination_status(m),
-                           "status_primal"=>primal_status(m),
-                           "status_dual"=>dual_status(m),
-                           "objective"=>objective_value(m),
-                           "CO2_Price"=>CO2_samples[i],
-                           "Investment"=> value.(m.ext[:variables][:vGenInv])
-                           )
-                )
-          )
-end
-
-# print lp file
-f = open("gep-model.lp", "w")
-print(f, m)
-close(f)
+# run the simulation and save the results in a Dict and in a df
+df_mc_summary, df_inv_mc = run_mc_sim(m,parameters_file,CO2_samples,RES_avai_samples)
 
 ## Step 5: interpretation
 using Plots
 using Interact
 using StatsPlots
 using Statistics
+using DataFramesMeta
+using CategoricalArrays
 
 # sets
 T = m.ext[:sets][:T]
@@ -221,20 +193,39 @@ df_prod  = convert_jump_container_to_df(vGenProd ,dim_names=[:Generation,:Time],
 df_ens   = convert_jump_container_to_df(vLossLoad,dim_names=[:Node,:Time]      ,value_col=:ENS       )
 df_inv   = convert_jump_container_to_df(vGenInv  ,dim_names=[:Generation]      ,value_col=:Investment)
 
-# export dataframes to CSV
-dfs_to_export = Dict("price"      => df_price,
-                     "production" => df_prod,
-                     "ens"        => df_ens,
-                     "investment" => df_inv
-                    )
-for (name,df_) in dfs_to_export
+# export results to CSV
+results_to_export = Dict("price"      => df_price,
+                         "production" => df_prod,
+                         "ens"        => df_ens,
+                         "investment" => df_inv,
+                         "mc_summary" => df_mc_summary,
+                         "mc_results" => df_inv_mc
+                        )
+for (name,r) in results_to_export
     CSV.write(joinpath(".",
                        parameters_file["outputs_dir"],
                        "oGEP_"*name*".csv"
                       ),
-              df_)
+              r)
 end
 
+# plot montecarlo results
+mc_p1 = plot_marginalkde(df_mc_summary.CO2_price*1e3,
+                         df_mc_summary.objective/1e3)
+
+mc_p2 = plot_investment_dist(df_inv_mc,pUnitCap)
+
+mc_p = plot(mc_p1, mc_p2, layout = (2, 1))
+mc_p = plot!(size=(800,800))
+savefig(mc_p,joinpath(".",parameters_file["outputs_dir"],"oGEP_"*"mc_summary_plot"*".png"))
+display(mc_p)
+
+mc_corr = plot_corr(df_inv_mc)
+mc_corr = plot!(size=(800,800))
+savefig(mc_corr,joinpath(".",parameters_file["outputs_dir"],"oGEP_"*"mc_corr_plot"*".png"))
+display(mc_corr)
+
+# plot results from last iteration
 # average electricity price price
 p1a = df_price |> plot_avg_price_per_node;
 p1b = df_price |> plot_avg_price_per_hour;

@@ -16,9 +16,11 @@ input_file_lines   = "iGEP_data_transmission_lines.csv"
 outputs_dir = "outputs"
 
 # monte carlo simulation
-iterations = 10
-CO2_price_kEUR_t_mean = 0.040
-CO2_price_kEUR_t_st = 0.010
+iterations = 100
+CO2_price_kEUR_t_mean = 0.100
+CO2_price_kEUR_t_st = 0.050
+RES_avail_max = 1.00
+RES_avail_min = 0.50
 tech_to_apply_CO2_cost = ["Thermal"]
 
 
