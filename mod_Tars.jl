@@ -11,6 +11,8 @@ using XLSX
 using DataFrames
 using JuMP
 using Ipopt,Cbc,HiGHS,GLPK
+#using Plots
+using StatsPlots
 
 export main,loadfile,savefile,parameteranalysis,randomselection,linearmodel
 
@@ -314,18 +316,85 @@ function linearmodel(modeldata,unitdata)#unitdata::Dict;
         "objective"=>objective_value(model),
         #"shadow"=>shadow_price(balance[1]),
     )
+    unitresults=Dict()
     for unit in unitkeys
-        modelresults[unit]=[value(po[unit,t]) for t in 1:timesteps]
+        unitresults[unit]=Dict(
+            "capacity"=>value(pc[unit]),
+            "powerprofile"=>[value(po[unit,t]) for t in 1:timesteps]
+        )
     end
     #for t in 1:timesteps
     #    modelresults[string("shadow$t")]=shadow_price(balance(t))
     #end
-    return modelresults
+    return Dict("modelresults"=>modelresults,"unitresults"=>unitresults)
 end
 
 # something with powermodels? Nah, not for the Mopo project. Same for machine learning in the selection process.
 
 function spinewrapper()
+end
+
+"""
+    visualisation()
+Visualisation of the results of the parameter analysis.
+"""
+function visualisation(iodb;plotfolder="./Data_Tars/",extensions=["png","svg","pdf"])#perhaps also selection
+    selection=iodb["selection"]
+    samples=iodb["samples"]
+    modeldata=iodb["linearmodel"]["modeldata"]
+    unitdata=iodb["linearmodel"]["unitdata"]
+
+    # process data from dictionary to dataframes
+        #sampledata=DataFrame()
+    
+    #profile plot
+    profileplots=[]
+    timesteps=[t for t in 1:modeldata["timesteps"]]
+    for unitname in keys(unitdata)
+        p=plot(title=unitname,legend=false)#legend=:outterright
+        for (samplename,sample) in samples
+            unitprofile=sample[2]["unitresults"][unitname]["powerprofile"]
+            plot!(timesteps,unitprofile,label=samplename)
+        end
+        push!(profileplots,p)
+    end
+    profileplot=plot(profileplots...)
+    for extension in extensions
+        savefig(profileplot,plotfolder*"profileplot."*extension)
+    end
+
+    # data preparation
+    selectionnames=[]
+    for category in keys(selection)
+        for parameter in keys(selection[category])
+            push!(selectionnames,category*"_"*parameter)
+        end
+    end
+    columnnames=[["samplename","objective"];["capacity_"*unitname for unitname in keys(unitdata)];selectionnames]
+    sampledata=DataFrame([[] for _ = columnnames],columnnames)
+    for (samplename,sample) in samples
+        samplerow=[samplename,sample[2]["modelresults"]["objective"]]
+        for unitname in keys(unitdata)
+            push!(samplerow,sample[2]["unitresults"][unitname]["capacity"])
+        end
+        for category in keys(selection)
+            for parameter in keys(selection[category])
+                push!(samplerow,sample[1][category][parameter])
+            end
+        end
+        push!(sampledata,samplerow)
+    end
+
+    # scatter plots
+    # violinbox
+    violinboxplot=plot(ylabel="objective",legend=false)
+    @df sampledata violin!(selectionnames, :objective, linewidth=0)
+    @df sampledata boxplot!(selectionnames, :objective, fillalpha=0.75, linewidth=2)
+    @df sampledata dotplot!(selectionnames, :objective, marker=(:black, stroke(0)))
+    for extension in extensions
+        savefig(violinboxplot,plotfolder*"violinboxplot."*extension)
+    end
+    # gif?
 end
 
 """
@@ -337,6 +406,7 @@ function main(;parallelcomputing=false,iofilelocation="")
     pasettings=Dict(Symbol(k) => v for (k,v) in iodb["parameteranalysis"])
     pasettings[:parallel]=parallelcomputing
     iodb=parameteranalysis(iodb;pasettings...)
+    visualisation(iodb)
     #savefile(DataFrame(iodb["samples"]))
     #savefile(iodb)
 end
@@ -347,5 +417,8 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # this is a pythonic way of doing things
     # in Julia they typically make a separate example or test file
     using .mod_Tars #using because this code block is outside of the module and . for a local module
+    mod_Tars.main()
+elseif isinteractive()#should be deleted after developing the file
+    using .mod_Tars
     mod_Tars.main()
 end
