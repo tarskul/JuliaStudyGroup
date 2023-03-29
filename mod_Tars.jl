@@ -339,6 +339,7 @@ end
 Visualisation of the results of the parameter analysis.
 """
 function visualisation(iodb;plotfolder="./Data_Tars/",extensions=["png","svg","pdf"])#perhaps also selection
+    selection=iodb["selection"]
     samples=iodb["samples"]
     modeldata=iodb["linearmodel"]["modeldata"]
     unitdata=iodb["linearmodel"]["unitdata"]
@@ -347,26 +348,52 @@ function visualisation(iodb;plotfolder="./Data_Tars/",extensions=["png","svg","p
         #sampledata=DataFrame()
     
     #profile plot
-    profileplot=plot(legend=:outerright)
+    profileplots=[]
     timesteps=[t for t in 1:modeldata["timesteps"]]
-    for (samplename,sample) in samples
-        for (unitname,unit) in sample[2]["unitresults"]
-            if unitdata[unitname]["category"]!="demand"
-                plot!(timesteps,unit["powerprofile"],label=samplename*"_"*unitname)
-            end
+    for unitname in keys(unitdata)
+        p=plot(title=unitname,legend=false)#legend=:outterright
+        for (samplename,sample) in samples
+            unitprofile=sample[2]["unitresults"][unitname]["powerprofile"]
+            plot!(timesteps,unitprofile,label=samplename)
         end
+        push!(profileplots,p)
     end
+    profileplot=plot(profileplots...)
     for extension in extensions
         savefig(profileplot,plotfolder*"profileplot."*extension)
     end
 
+    # data preparation
+    selectionnames=[]
+    for category in keys(selection)
+        for parameter in keys(selection[category])
+            push!(selectionnames,category*"_"*parameter)
+        end
+    end
+    columnnames=[["samplename","objective"];["capacity_"*unitname for unitname in keys(unitdata)];selectionnames]
+    sampledata=DataFrame([[] for _ = columnnames],columnnames)
+    for (samplename,sample) in samples
+        samplerow=[samplename,sample[2]["modelresults"]["objective"]]
+        for unitname in keys(unitdata)
+            push!(samplerow,sample[2]["unitresults"][unitname]["capacity"])
+        end
+        for category in keys(selection)
+            for parameter in keys(selection[category])
+                push!(samplerow,sample[1][category][parameter])
+            end
+        end
+        push!(sampledata,samplerow)
+    end
+
     # scatter plots
     # violinbox
-
-    #@df sampledata violin(string.(:VoicePart), :Height, linewidth=0)
-    #@df sampledata boxplot!(string.(:VoicePart), :Height, fillalpha=0.75, linewidth=2)
-    #@df sampledata dotplot!(string.(:VoicePart), :Height, marker=(:black, stroke(0)))
-
+    violinboxplot=plot(ylabel="objective",legend=false)
+    @df sampledata violin!(selectionnames, :objective, linewidth=0)
+    @df sampledata boxplot!(selectionnames, :objective, fillalpha=0.75, linewidth=2)
+    @df sampledata dotplot!(selectionnames, :objective, marker=(:black, stroke(0)))
+    for extension in extensions
+        savefig(violinboxplot,plotfolder*"violinboxplot."*extension)
+    end
     # gif?
 end
 
@@ -390,5 +417,8 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # this is a pythonic way of doing things
     # in Julia they typically make a separate example or test file
     using .mod_Tars #using because this code block is outside of the module and . for a local module
+    mod_Tars.main()
+elseif isinteractive()#should be deleted after developing the file
+    using .mod_Tars
     mod_Tars.main()
 end
