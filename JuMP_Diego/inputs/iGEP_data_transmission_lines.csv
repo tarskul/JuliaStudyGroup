@@ -1,4 +1,4 @@
 Line,Node_from,Node_to,ExpCap_MW,ImpCap_MW
 line_1_2,node_1,node_2,200,200
-line_1_3,node_1,node_3,200,200
+line_1_3,node_1,node_3,500,500
 line_2_3,node_2,node_3,200,200
