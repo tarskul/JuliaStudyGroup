@@ -383,19 +383,20 @@ function visualisation(iodb;plotfolder="./Data_Tars/",extensions=["png"])#extens
         push!(sampledata,samplerow)
     end
 
-    # scatter plots
+    # scatter plots?
 
     # violinbox
     violinboxplot=StatsPlots.plot(ylabel="objective",legend=false)
-    @df sampledata violin!(selectionnames, :objective, line=(2,:blue), fill=:lightblue)#linewidth=0
-    @df sampledata boxplot!(selectionnames, :objective, line=(2,:orange), fill=(0.5,:orange))#fillalpha=0.75, linewidth=2
+    @df sampledata violin!(selectionnames, :objective, line=(2,:blue), fill=(0.75,:lightblue))#linewidth=0
+    @df sampledata boxplot!(selectionnames, :objective, line=(2,:green), fill=(0.5,:lightgreen))#fillalpha=0.75, linewidth=2
     @df sampledata dotplot!(selectionnames, :objective, marker=(:black, stroke(0)))
     for extension in extensions
         StatsPlots.savefig(violinboxplot,plotfolder*"violinboxplot."*extension)
     end
 
     #parallel coordinates
-    traces = parcoords(;line = attr(color=sampledata[!,"objective"]),#colorscale=[(0,"red"), (0.5,"green"),(1,"blue")],
+    # https://plotly.com/javascript/reference/parcoords/
+    traces = parcoords(;line = attr(color=sampledata[!,"objective"],showscale=true,colorscale="Rainbow"),# colorscale=[(0,"red"), (0.5,"green"),(1,"blue")],#colorscale="Blackbody","Bluered","Blues","Cividis","Earth","Electric","Greens","Greys","Hot","Jet","Picnic","Portland","Rainbow","RdBu","Reds","Viridis","YlGnBu","YlOrRd"
         dimensions = [
             attr(
                 range = [minimum(sampledata[!,selectionname]),maximum(sampledata[!,selectionname])],
@@ -409,6 +410,7 @@ function visualisation(iodb;plotfolder="./Data_Tars/",extensions=["png"])#extens
     for extension in extensions
         PlotlyJS.savefig(parallelplot,plotfolder*"parallelplot."*extension)
     end
+
     # gif?
 end
 
@@ -432,8 +434,5 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # this is a pythonic way of doing things
     # in Julia they typically make a separate example or test file
     using .mod_Tars #using because this code block is outside of the module and . for a local module
-    mod_Tars.main()
-elseif isinteractive()#should be deleted after developing the file
-    using .mod_Tars
     mod_Tars.main()
 end
