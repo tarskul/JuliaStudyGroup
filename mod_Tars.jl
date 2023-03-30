@@ -12,6 +12,7 @@ using DataFrames
 using JuMP
 using Ipopt,Cbc,HiGHS,GLPK
 #using Plots
+using PlotlyJS
 using StatsPlots
 
 export main,loadfile,savefile,parameteranalysis,randomselection,linearmodel
@@ -338,29 +339,26 @@ end
     visualisation()
 Visualisation of the results of the parameter analysis.
 """
-function visualisation(iodb;plotfolder="./Data_Tars/",extensions=["png","svg","pdf"])#perhaps also selection
+function visualisation(iodb;plotfolder="./Data_Tars/",extensions=["png"])#extensions=["png","svg","pdf"]
     selection=iodb["selection"]
     samples=iodb["samples"]
     modeldata=iodb["linearmodel"]["modeldata"]
     unitdata=iodb["linearmodel"]["unitdata"]
-
-    # process data from dictionary to dataframes
-        #sampledata=DataFrame()
     
     #profile plot
     profileplots=[]
     timesteps=[t for t in 1:modeldata["timesteps"]]
     for unitname in keys(unitdata)
-        p=plot(title=unitname,legend=false)#legend=:outterright
+        p=StatsPlots.plot(title=unitname,legend=false)#legend=:outterright
         for (samplename,sample) in samples
             unitprofile=sample[2]["unitresults"][unitname]["powerprofile"]
-            plot!(timesteps,unitprofile,label=samplename)
+            StatsPlots.plot!(timesteps,unitprofile,label=samplename)
         end
         push!(profileplots,p)
     end
-    profileplot=plot(profileplots...)
+    profileplot=StatsPlots.plot(profileplots...)
     for extension in extensions
-        savefig(profileplot,plotfolder*"profileplot."*extension)
+        StatsPlots.savefig(profileplot,plotfolder*"profileplot."*extension)
     end
 
     # data preparation
@@ -386,13 +384,30 @@ function visualisation(iodb;plotfolder="./Data_Tars/",extensions=["png","svg","p
     end
 
     # scatter plots
+
     # violinbox
-    violinboxplot=plot(ylabel="objective",legend=false)
-    @df sampledata violin!(selectionnames, :objective, linewidth=0)
-    @df sampledata boxplot!(selectionnames, :objective, fillalpha=0.75, linewidth=2)
+    violinboxplot=StatsPlots.plot(ylabel="objective",legend=false)
+    @df sampledata violin!(selectionnames, :objective, line=(2,:blue), fill=:lightblue)#linewidth=0
+    @df sampledata boxplot!(selectionnames, :objective, line=(2,:orange), fill=(0.5,:orange))#fillalpha=0.75, linewidth=2
     @df sampledata dotplot!(selectionnames, :objective, marker=(:black, stroke(0)))
     for extension in extensions
-        savefig(violinboxplot,plotfolder*"violinboxplot."*extension)
+        StatsPlots.savefig(violinboxplot,plotfolder*"violinboxplot."*extension)
+    end
+
+    #parallel coordinates
+    traces = parcoords(;line = attr(color=sampledata[!,"objective"]),#colorscale=[(0,"red"), (0.5,"green"),(1,"blue")],
+        dimensions = [
+            attr(
+                range = [minimum(sampledata[!,selectionname]),maximum(sampledata[!,selectionname])],
+                label = selectionname,
+                values = sampledata[!,selectionname]
+            )
+            for selectionname in selectionnames
+            ]
+        )
+    parallelplot = PlotlyJS.plot(traces)
+    for extension in extensions
+        PlotlyJS.savefig(parallelplot,plotfolder*"parallelplot."*extension)
     end
     # gif?
 end
