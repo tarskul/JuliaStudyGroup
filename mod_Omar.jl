@@ -140,11 +140,11 @@ end
 This function returns a random value bewteen two values, with a normal
 Distributions
 """
-function rand_between(min_value, max_value)
+function rand_between(min_value, max_value,spread_ratio)
     # return(Uniform(min_value,max_value))
     return (
         Truncated(
-            Normal((max_value+min_value)/2, (max_value-min_value)/4),
+            Normal((max_value+min_value)/2, (max_value-min_value)/spread_ratio),
             min_value,max_value)
     )
 end
@@ -163,6 +163,7 @@ function characteristics_of_power_plants(parameters_file)
         "minimal_plant_variable_costs"]
     maximal_plant_variable_costs = power_plants_inputs[
         "maximal_plant_variable_costs"]
+    spread_ratio = power_plants_inputs["spread_ratio"]
 
     # When determining minimal and maximal productions, we need
     # to check that the minimal values are lower than the maximal ones,
@@ -216,7 +217,8 @@ function characteristics_of_power_plants(parameters_file)
     plant_variable_costs = (
         rand(
             rand_between(
-                minimal_plant_variable_costs,maximal_plant_variable_costs), 
+                minimal_plant_variable_costs,maximal_plant_variable_costs,
+                spread_ratio), 
             number_of_power_plants
         )
     )
@@ -322,7 +324,7 @@ function power_systems_model(parameters_file)
     renewables_bottom_availability_factor =power_plants_inputs[
         "renewables_bottom_availability_factor"
     ]
-
+    spread_ratio = power_plants_inputs["spread_ratio"]
     renewable_capacity_range = range(
         start=0 ,stop=maximal_demand, length=renewable_capacity_range_steps
     )
@@ -349,8 +351,10 @@ function power_systems_model(parameters_file)
         println(iteration)
         # We draw the parameters of the system
         renewable_availability_factor = rand(
-            rand_between(renewables_bottom_availability_factor,1),1)[1]
-        demand = rand(rand_between(minimal_demand,maximal_demand), 1)[1]
+            rand_between(
+                renewables_bottom_availability_factor,1,spread_ratio),1)[1]
+        demand = rand(
+            rand_between(minimal_demand,maximal_demand,spread_ratio), 1)[1]
         if plant_characteristics_in_iteration
             minimal_productions, maximal_productions, plant_variable_costs = (
                 characteristics_of_power_plants(

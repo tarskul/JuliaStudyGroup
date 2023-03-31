@@ -157,10 +157,15 @@ agenda:
 07/04
 
 homework:
-+ write a SpineOpt model within the spinewrapper (it is supposed to replace the JuMP model but does not need to be exactly the same)
++ Play around with calling SpineOpt through Julia (create database, pass it to SpineOpt and read the results). Your code does not need to run. In other words, the idea is to get questions and it is not necessary to already have the answers.
++ bonus: replace your jump model with the SpineOpt model in your code
+
+resources:
++ It is recommended to install the developer version of [SpineOpt](https://github.com/spine-tools/SpineOpt.jl) and [SpineInterface](https://github.com/spine-tools/SpineInterface.jl). Besides the intallation instructions you also get information for the external monthly user meeting where you can get some additional support. There should be a meeting on 04/04 at 14:00 (UCT).
++ for creating a database you can get started with [this example](https://github.com/spine-tools/SpineInterface.jl/blob/master/examples/create_case30_m_db.jl)
 
 agenda:
-+ similar discussion and comparison for the SpineOpt model as there was for the JuMP model
++ discussion on SpineOpt in Julia as a preparation for the deepdive event
 
 
 11/04-12/04 SpineOpt deepdive event
