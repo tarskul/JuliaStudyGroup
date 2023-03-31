@@ -152,7 +152,7 @@ function parameteranalysis(iodb;npi=10,finish=0.0,i=0,itarget=10,t=0.0,ttarget=N
         # correction of redundant samples (future feature)
         # run model
         t1=time()
-        if parallel==true
+        if parallel
             nlist=zeros(length(samplenames))
             Threads.@threads for sampleindex in eachindex(samplenames)
                 samplename=samplenames[sampleindex]
@@ -386,6 +386,7 @@ function visualisation(iodb;plotfolder="./Data_Tars/",extensions=["png"])#extens
     # scatter plots?
 
     # violinbox
+    # list of colornames: https://github.com/JuliaGraphics/Colors.jl/blob/master/src/names_data.jl
     violinboxplot=StatsPlots.plot(ylabel="objective",legend=false)
     @df sampledata violin!(selectionnames, :objective, line=(2,:blue), fill=(0.75,:lightblue))#linewidth=0
     @df sampledata boxplot!(selectionnames, :objective, line=(2,:green), fill=(0.5,:lightgreen))#fillalpha=0.75, linewidth=2
@@ -398,11 +399,11 @@ function visualisation(iodb;plotfolder="./Data_Tars/",extensions=["png"])#extens
     # https://plotly.com/javascript/reference/parcoords/
     traces = parcoords(;line = attr(color=sampledata[!,"objective"],showscale=true,colorscale="Rainbow"),# colorscale=[(0,"red"), (0.5,"green"),(1,"blue")],#colorscale="Blackbody","Bluered","Blues","Cividis","Earth","Electric","Greens","Greys","Hot","Jet","Picnic","Portland","Rainbow","RdBu","Reds","Viridis","YlGnBu","YlOrRd"
         dimensions = [
-            attr(
-                range = [minimum(sampledata[!,selectionname]),maximum(sampledata[!,selectionname])],
-                label = selectionname,
-                values = sampledata[!,selectionname]
-            )
+                attr(
+                    range = [minimum(sampledata[!,selectionname]),maximum(sampledata[!,selectionname])],
+                    label = selectionname,
+                    values = sampledata[!,selectionname]
+                )
             for selectionname in selectionnames
             ]
         )
