@@ -1,0 +1,65 @@
+{
+    "project": {
+        "version": 10,
+        "description": "",
+        "specifications": {},
+        "connections": [
+            {
+                "name": "from Load template to SpineDB_in",
+                "from": [
+                    "Load template",
+                    "right"
+                ],
+                "to": [
+                    "SpineDB_in",
+                    "left"
+                ]
+            }
+        ],
+        "jumps": []
+    },
+    "items": {
+        "Load template": {
+            "type": "Tool",
+            "description": "",
+            "x": -165.18365272938448,
+            "y": -66.07346109175379,
+            "specification": "Load template",
+            "execute_in_work": true,
+            "cmd_line_args": [],
+            "kill_completed_processes": false
+        },
+        "SpineDB_in": {
+            "type": "Data Store",
+            "description": "",
+            "x": -44.04897406116918,
+            "y": -61.067895857530004,
+            "url": {
+                "dialect": "sqlite",
+                "host": "",
+                "port": "",
+                "database": {
+                    "type": "path",
+                    "relative": true,
+                    "path": ".spinetoolbox/items/spinedb_in/SpineDB_in.sqlite"
+                }
+            }
+        },
+        "SpineDB_out": {
+            "type": "Data Store",
+            "description": "",
+            "x": -49.27277273090312,
+            "y": 59.328440635169066,
+            "url": {
+                "dialect": "sqlite",
+                "host": "",
+                "port": "",
+                "database": {
+                    "type": "path",
+                    "relative": true,
+                    "path": ".spinetoolbox/items/spinedb_out/SpineDB_out.sqlite"
+                }
+            }
+        }
+    }
+}

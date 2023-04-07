@@ -1,0 +1,16 @@
+{
+    "items": {
+        "SpineDB_in": {
+            "url": {
+                "username": "",
+                "password": ""
+            }
+        },
+        "SpineDB_out": {
+            "url": {
+                "username": "",
+                "password": ""
+            }
+        }
+    }
+}
